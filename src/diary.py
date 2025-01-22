@@ -69,6 +69,11 @@ class DiaryApp(QWidget):
         delete_action.triggered.connect(self.delete_diary)
         menu.addAction(delete_action)
 
+        # 重命名选项
+        rename_action = QAction("重命名日记", self)
+        rename_action.triggered.connect(self.rename_diary)
+        menu.addAction(rename_action)
+
         # 在列表中显示右键菜单
         menu.exec(self.diary_list.viewport().mapToGlobal(position))
 
@@ -169,7 +174,7 @@ class DiaryApp(QWidget):
         if ok and file_name:
             try:
                 encrypted_data = EncryptionUtil.encrypt(content.encode(), self.key)
-                with open(f"{CommonUtil.get_diary_enc_path()}/{file_name}.enc", "wb") as file:
+                with open(f"{DIARY_DIR}/{file_name}.enc", "wb") as file:
                     file.write(encrypted_data)
                 self.load_diary_list()
                 QMessageBox.information(self, "成功", "日记已保存！")
@@ -211,6 +216,44 @@ class DiaryApp(QWidget):
                     self.diary_content.clear()
             except Exception as e:
                 QMessageBox.critical(self, "错误", f"删除日记失败：{str(e)}")
+
+    def rename_diary(self):
+        """重命名选中的日记"""
+        # 获取当前选中的列表项
+        current_item = self.diary_list.currentItem()
+        if not current_item:
+            QMessageBox.warning(self, "警告", "请先选择要重命名的日记！")
+            return
+
+        old_name = current_item.text()
+        old_file_path = f"{DIARY_DIR}/{old_name}.enc"
+
+        # 输入新的文件名
+        new_name, ok = QInputDialog.getText(self, "重命名日记", "请输入新的日记名称：", text=old_name)
+        if not ok or not new_name:
+            return  # 用户取消操作或输入为空
+
+        # 检查是否重名
+        new_file_path = f"{DIARY_DIR}/{new_name}.enc"
+        if os.path.exists(new_file_path):
+            QMessageBox.warning(self, "警告", "文件名已存在，请使用其他名称。")
+            return
+
+        # 重命名文件
+        try:
+            os.rename(old_file_path, new_file_path)
+
+            # 更新列表项显示名称
+            current_item.setText(new_name)
+
+            # 如果重命名的是当前正在编辑的文件，更新 self.current_file
+            if self.current_file == old_name:
+                self.current_file = new_name
+
+            QMessageBox.information(self, "成功", f"日记已重命名为：{new_name}")
+        except Exception as e:
+            QMessageBox.critical(self, "错误", f"重命名失败：{str(e)}")
+
 if __name__ == "__main__":
     app = QApplication([])
     window = DiaryApp()
