@@ -11,5 +11,4 @@ wheel== 0.41.2
 pillow==11.1.0
 numpy==2.0.2
 cryptography==44.0.0
-markdown==3.7
-pymdown-extensions==10.14.1
+markdown-it-py==3.0.0

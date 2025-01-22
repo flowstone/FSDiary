@@ -35,10 +35,14 @@ class FsConstants:
     LICENSE_FILE_PATH = "resources/txt/LICENSE"
 
 
-    EDIT_BTN_PATH = "resources/btn/edit-btn.svg"
-    MARKDOWN_BTN_PATH = "resources/btn/markdown-btn.svg"
-    NEW_DIARY_BTN_PATH = "resources/btn/new-diary-btn.svg"
+    EDIT_BTN_PATH = "resources/images/btn/edit-btn.svg"
+    MARKDOWN_BTN_PATH = "resources/images/btn/markdown-btn.svg"
+    NEW_DIARY_BTN_PATH = "resources/images/btn/new-diary-btn.svg"
 
+    BOLD_ICON_PATH = "resources/images/icon/bold.svg"
+    ITALIC_ICON_PATH = "resources/images/icon/italic.svg"
+    LINK_ICON_PATH = "resources/images/icon/link.svg"
+    IMAGE_ICON_PATH = "resources/images/icon/image.svg"
 
 
 
