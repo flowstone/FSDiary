@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         # 设置拖拽支持
         self.setAcceptDrops(True)
         logger.info(f"调用了主界面的初始化,悬浮球标志位 = {self.is_floating_ball_visible}")
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1000, 800)
 
         # ---- 工具栏 START
         self.menubar = MenuBar(self)

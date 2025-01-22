@@ -43,6 +43,11 @@ class FsConstants:
     ITALIC_ICON_PATH = "resources/images/icon/italic.svg"
     LINK_ICON_PATH = "resources/images/icon/link.svg"
     IMAGE_ICON_PATH = "resources/images/icon/image.svg"
+    COLOR_ICON_PATH = "resources/images/icon/font-colors.svg"
+    HR_ICON_PATH = "resources/images/icon/hr.svg"
+    BLOCKQUOTE_ICON_PATH = "resources/images/icon/blockquote.svg"
+    TABLE_ICON_PATH = "resources/images/icon/table.svg"
+    TIMESTAMP_ICON_PATH = "resources/images/icon/time.svg"
 
 
 
