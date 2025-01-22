@@ -71,12 +71,12 @@ class MarkdownEditor(QWidget):
         toolbar.addWidget(spacer)
 
         # 添加切换到预览模式按钮
-        preview_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.MARKDOWN_BTN_PATH)), "插入图片", self)
+        preview_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.MARKDOWN_BTN_PATH)), "预览模式", self)
         preview_action.triggered.connect(self.switch_to_preview)
         toolbar.addAction(preview_action)
 
         # 添加切换到编辑模式按钮
-        edit_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.EDIT_BTN_PATH)), "插入图片", self)
+        edit_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.EDIT_BTN_PATH)), "编辑模式", self)
         edit_action.triggered.connect(self.switch_to_edit)
         toolbar.addAction(edit_action)
 
