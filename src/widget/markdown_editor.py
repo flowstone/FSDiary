@@ -1,8 +1,9 @@
 from PySide6 import QtCore
+from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QVBoxLayout, QWidget, QSizePolicy, QColorDialog, \
     QInputDialog
 from PySide6.QtGui import QIcon, QAction
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QUrl
 from PySide6.QtWidgets import QInputDialog
 
 from src.const.fs_constants import FsConstants
@@ -10,7 +11,7 @@ from src.util.common_util import CommonUtil
 from src.widget.image_button import ImageButton
 from markdown_it import MarkdownIt
 from datetime import datetime  # 用于插入时间
-
+from loguru import  logger
 from PySide6.QtWidgets import QToolBar
 
 class MarkdownEditor(QWidget):
@@ -33,8 +34,10 @@ class MarkdownEditor(QWidget):
         main_layout.addWidget(self.diary_editor)
 
         # 预览框
-        self.preview = QTextBrowser(self)
+        self.preview = QWebEngineView(self)
+        self.preview.setUrl(QUrl("about:blank"))  # 设置初始空白页面
         self.preview.setVisible(False)
+
         main_layout.addWidget(self.preview)
 
         # 设置主布局
@@ -235,7 +238,6 @@ class MarkdownEditor(QWidget):
         # 启用表格解析功能
         md = MarkdownIt("commonmark").enable("table")
         html_content = md.render(content)
-
         # 添加样式
         styled_html = f"""
             <html>
@@ -245,7 +247,7 @@ class MarkdownEditor(QWidget):
                 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/components/prism-python.min.js"></script>
                 <style>
                     body {{ line-height: 1.6; padding: 10px; }}
-                    pre {{ background: #f4f4f4; padding: 10px; overflow: auto; }}
+                    pre {{ padding: 10px; overflow: auto; }}
                     code {{ color: inherit; }}
                 </style>
             </head>
@@ -253,13 +255,21 @@ class MarkdownEditor(QWidget):
                 {html_content}
             </body>
             <script>
-                // 强制重新渲染代码块的高亮
-                Prism.highlightAll();
+                  document.addEventListener("DOMContentLoaded", function () {{
+                        if (typeof Prism === 'undefined') {{
+                            console.error('Prism.js 未正确加载！');
+                        }} else {{
+                            console.log('Prism.js 加载成功');
+                            // 延迟执行以确保 Prism.js 加载完成
+                            setTimeout(function() {{
+                                Prism.highlightAll();
+                            }}, 100);  // 延时 100ms 执行高亮，确保 Prism.js 完全加载
+                        }}
+                    }});
             </script>
             </html>
         """
         self.preview.setHtml(styled_html)
-        self.preview.setOpenExternalLinks(True)  # 允许加载外部链接
 
     def get_content(self):
         """获取编辑器中的内容"""

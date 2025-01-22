@@ -49,6 +49,8 @@ class FsConstants:
     TABLE_ICON_PATH = "resources/images/icon/table.svg"
     TIMESTAMP_ICON_PATH = "resources/images/icon/time.svg"
 
+    PRISM_JS_PATH = "resources/prism"
+
 
 
     # 保存文件路径
