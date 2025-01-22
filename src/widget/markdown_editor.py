@@ -20,6 +20,7 @@ class MarkdownEditor(QWidget):
 
     def __init__(self):
         super().__init__()
+        self._is_preview = False
 
         # 创建一个垂直布局
         main_layout = QVBoxLayout(self)
@@ -128,6 +129,8 @@ class MarkdownEditor(QWidget):
         # 将工具栏添加到布局中
         self.layout().addWidget(toolbar)
 
+
+
     def insert_bold(self):
         """插入加粗Markdown语法"""
         cursor = self.diary_editor.textCursor()
@@ -212,10 +215,17 @@ class MarkdownEditor(QWidget):
         """当编辑器内容发生变化时触发自定义信号"""
         self.textChanged.emit()
 
+    def is_preview_mode(self):
+        """检查是否处于预览模式"""
+        return self._is_preview
+
+
+
     def switch_to_preview(self):
         """切换到预览模式"""
         self.preview.setVisible(True)
         self.diary_editor.setVisible(False)
+        self._is_preview = True
         self.update_preview()
         # 禁用所有工具栏按钮，除了“编辑模式”按钮
         for action_name, action in self.toolbar_actions.items():
@@ -226,6 +236,7 @@ class MarkdownEditor(QWidget):
         """切换到编辑模式"""
         self.preview.setVisible(False)
         self.diary_editor.setVisible(True)
+        self._is_preview = False
         # 启用所有工具栏按钮
         for action in self.toolbar_actions.values():
             action.setDisabled(False)

@@ -141,6 +141,12 @@ class DiaryApp(QWidget):
             self.current_file = None
             return
 
+
+        # 如果 Markdown 编辑器在预览模式，切换回编辑模式
+        if self.diary_content.is_preview_mode():
+            self.diary_content.switch_to_edit()
+
+
         # 加载并显示日记内容
         try:
             with open(file_path, "rb") as file:
