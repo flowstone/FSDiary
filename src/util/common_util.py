@@ -169,3 +169,17 @@ class CommonUtil:
         # SAVE_FILE_PATH_WIN = "C:\\FSDiary\\"
         # SAVE_FILE_PATH_MAC = "~/FSDiary/"
         return FsConstants.SAVE_FILE_PATH_WIN if CommonUtil.check_win_os() else CommonUtil.get_mac_user_path()
+
+    @staticmethod
+    def get_diary_enc_path():
+
+        # 优先使用外部配置文件
+        data_path = CommonUtil.get_external_path()
+        return os.path.join(data_path, FsConstants.DIARY_ENC_PATH)
+
+    @staticmethod
+    def get_diary_key_path():
+
+        # 优先使用外部配置文件
+        data_path = CommonUtil.get_external_path()
+        return os.path.join(data_path, FsConstants.DIARY_KEY_PATH)

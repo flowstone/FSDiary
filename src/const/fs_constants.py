@@ -46,6 +46,9 @@ class FsConstants:
     HELP_PDF_FILE_PATH = "resources/pdf/help.pdf"
     FONT_FILE_PATH = "resources/fonts/AlimamaFangYuanTiVF-Thin.ttf"
 
+    DIARY_ENC_PATH = "diaries/"
+    DIARY_KEY_PATH = "secret.key"
+
     #首选项
     PREFERENCES_WINDOW_TITLE = "首选项"
     PREFERENCES_WINDOW_TITLE_ABOUT = "关于"

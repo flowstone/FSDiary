@@ -6,6 +6,7 @@ from PySide6.QtGui import QFontDatabase, QPalette
 from loguru import logger
 
 from src.util.config_util import ConfigUtil
+from src.util.encryption_util import EncryptionUtil
 
 
 # 初始化文件
@@ -20,6 +21,11 @@ class AppInitUtil:
         if not os.path.exists(external_dir):
             logger.info(f"创建FSDiary文件夹:{external_dir}")
             os.makedirs(external_dir)
+        # 文章列表
+        diaries_path = CommonUtil.get_diary_enc_path()
+        if not os.path.exists(diaries_path):
+            logger.info(f"创建FSDiary的文章文件夹:{external_dir}")
+            os.makedirs(diaries_path)
 
         # 复制app.ini文件
         source_file = CommonUtil.get_resource_path(FsConstants.APP_INI_FILE)
@@ -28,6 +34,13 @@ class AppInitUtil:
         if not os.path.exists(destination_file):
             logger.info(f"复制app.ini文件:{source_file} -> {destination_file}")
             shutil.copyfile(source_file, destination_file)
+
+        # 笔记的加密文件
+        key_file = CommonUtil.get_diary_key_path()
+        if not os.path.exists(key_file):
+            logger.info(f"创建FSDiary加密Key:{key_file}")
+            EncryptionUtil.generate_key(key_file)
+
 
     @staticmethod
     def load_external_stylesheet(app):

@@ -9,8 +9,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QSystemTrayIcon
 
 from PySide6.QtGui import QIcon, Qt, QDragEnterEvent, QDropEvent
 
-from src.image_tool import ImageToolApp
-from src.util.config_util import ConfigUtil
+from src.diary import DiaryApp
 from src.widget.app_mini import FloatingBall
 from loguru import logger
 from src.util.common_util import CommonUtil
@@ -29,11 +28,11 @@ class MainWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
-        #self.setGeometry(300, 200, 600, 400)
         self.setWindowTitle(FsConstants.APP_WINDOW_TITLE)
         # 设置拖拽支持
         self.setAcceptDrops(True)
         logger.info(f"调用了主界面的初始化,悬浮球标志位 = {self.is_floating_ball_visible}")
+        self.setFixedSize(800, 600)
 
         # ---- 工具栏 START
         self.menubar = MenuBar(self)
@@ -54,9 +53,9 @@ class MainWindow(QMainWindow):
 
         # 创建主布局
         main_layout = QVBoxLayout(central_widget)
-        image_tool = ImageToolApp()
+        diary_app = DiaryApp()
 
-        main_layout.addWidget(image_tool)  # 将其添加到布局中
+        main_layout.addWidget(diary_app)  # 将其添加到布局中
 
     # 从托盘菜单点击显示主界面
     def tray_menu_show_main(self):
