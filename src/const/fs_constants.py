@@ -35,6 +35,11 @@ class FsConstants:
     LICENSE_FILE_PATH = "resources/txt/LICENSE"
 
 
+    EDIT_BTN_PATH = "resources/btn/edit-btn.svg"
+    MARKDOWN_BTN_PATH = "resources/btn/markdown-btn.svg"
+    NEW_DIARY_BTN_PATH = "resources/btn/new-diary-btn.svg"
+
+
 
 
     # 保存文件路径

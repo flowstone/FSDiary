@@ -1,12 +1,13 @@
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QListWidget, \
-    QMessageBox, QInputDialog, QWidget, QMenu
+    QMessageBox, QInputDialog, QWidget, QMenu, QSplitter
 from PySide6.QtCore import Qt, QTimer
 import os
 from loguru import logger
 from src.util.common_util import CommonUtil
 from src.util.encryption_util import EncryptionUtil
 from src.util.message_util import MessageUtil
+from src.widget.markdown_editor import MarkdownEditor
 
 DIARY_DIR = f"{CommonUtil.get_diary_enc_path()}"
 
@@ -35,26 +36,38 @@ class DiaryApp(QWidget):
     def init_ui(self):
         # 主界面布局
         main_layout = QHBoxLayout()
+        # 添加分割器
+        self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
         # 左侧布局（按钮 + 列表）
-        left_layout = QVBoxLayout()
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
 
         # 新建日记按钮
         add_button = QPushButton("新建日记")
         add_button.clicked.connect(self.new_diary)
         left_layout.addWidget(add_button)
+
         # 左侧列表
         self.diary_list = QListWidget()
         self.diary_list.itemClicked.connect(self.load_diary)
-        self.diary_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.diary_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.diary_list.customContextMenuRequested.connect(self.show_context_menu)
         left_layout.addWidget(self.diary_list)
-        main_layout.addLayout(left_layout, 2)
+
+        # 将左侧布局添加到分割器
+        self.splitter.addWidget(left_widget)
 
         # 右侧编辑框
-        self.diary_content = QTextEdit()
+        self.diary_content = MarkdownEditor()
         self.diary_content.textChanged.connect(self.start_save_timer)  # 监听文本修改
-        main_layout.addWidget(self.diary_content, 5)
+        self.splitter.addWidget(self.diary_content)
 
+        # 设置分割器的比例
+        self.splitter.setStretchFactor(0, 2)  # 左侧占比较小
+        self.splitter.setStretchFactor(1, 5)  # 右侧占比较大
+
+        # 添加分割器到主布局
+        main_layout.addWidget(self.splitter)
 
         self.setLayout(main_layout)
 
@@ -86,7 +99,7 @@ class DiaryApp(QWidget):
         """自动保存日记"""
         if not self.current_file:
             return
-        content = self.diary_content.toPlainText()
+        content = self.diary_content.get_content()
         file_path = f"{DIARY_DIR}/{self.current_file}.enc"
 
         try:
@@ -94,7 +107,7 @@ class DiaryApp(QWidget):
             with open(file_path, "wb") as file:
                 file.write(encrypted_data)
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"自动保存失败：{str(e)}")
+            MessageUtil.show_error_message(f"自动保存失败：{str(e)}")
 
     @staticmethod
     def load_key():
@@ -123,7 +136,7 @@ class DiaryApp(QWidget):
 
         # 检查文件是否存在
         if not os.path.exists(file_path):
-            QMessageBox.warning(self, "警告", f"日记文件不存在：{file_path}")
+            MessageUtil.show_warning_message(f"日记文件不存在：{file_path}")
             self.diary_list.takeItem(self.diary_list.row(item))
             self.current_file = None
             return
@@ -133,9 +146,9 @@ class DiaryApp(QWidget):
             with open(file_path, "rb") as file:
                 encrypted_data = file.read()
                 content = EncryptionUtil.decrypt(encrypted_data, self.key).decode()
-                self.diary_content.setPlainText(content)
+                self.diary_content.set_content(content)
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"无法加载日记：{str(e)}")
+            MessageUtil.show_error_message(f"无法加载日记：{str(e)}")
             self.diary_list.takeItem(self.diary_list.row(item))
             self.current_file = None
 
@@ -148,7 +161,7 @@ class DiaryApp(QWidget):
 
             # 如果文件已存在，提示用户选择其他名称
             if os.path.exists(file_path):
-                QMessageBox.warning(self, "警告", "同名日记已存在，请使用其他名称。")
+                MessageUtil.show_warning_message("同名日记已存在，请使用其他名称。")
                 return
             # 创建一个空的加密文件
             try:
@@ -157,18 +170,18 @@ class DiaryApp(QWidget):
                     file.write(encrypted_data)
 
             except Exception as e:
-                QMessageBox.critical(self, "错误", f"无法创建新日记文件：{str(e)}")
+                MessageUtil.show_error_message(f"无法创建新日记文件：{str(e)}")
                 return
 
             self.diary_list.addItem(self.current_file)
 
-            self.diary_content.clear()
-            QMessageBox.information(self, "成功", f"已创建新日记：{file_name}")
+            self.diary_content.clear_content()
+            MessageUtil.show_success_message(f"已创建新日记：{file_name}")
 
     def save_diary(self):
-        content = self.diary_content.toPlainText()
+        content = self.diary_content.get_content()
         if not content:
-            QMessageBox.warning(self, "警告", "日记内容不能为空！")
+            MessageUtil.show_warning_message("日记内容不能为空！")
             return
         file_name, ok = QInputDialog.getText(self, "保存日记", "请输入日记标题：")
         if ok and file_name:
@@ -177,25 +190,25 @@ class DiaryApp(QWidget):
                 with open(f"{DIARY_DIR}/{file_name}.enc", "wb") as file:
                     file.write(encrypted_data)
                 self.load_diary_list()
-                QMessageBox.information(self, "成功", "日记已保存！")
+                MessageUtil.show_success_message("日记已保存！")
             except Exception as e:
-                QMessageBox.critical(self, "错误", f"无法保存日记：{str(e)}")
+                MessageUtil.show_error_message(f"无法保存日记：{str(e)}")
 
     def delete_diary(self):
         """删除日记"""
         selected_item = self.diary_list.currentItem()
         if not selected_item:
-            QMessageBox.warning(self, "警告", "请先选择一篇日记！")
+            MessageUtil.show_warning_message("请先选择一篇日记！")
             return
         # 确认是否删除
         reply = QMessageBox.question(
             self,
             "确认删除",
             f"确定要删除日记 '{selected_item.text()}' 吗？",
-            QMessageBox.Yes | QMessageBox.No
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
 
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             file_name = selected_item.text()
             file_path = f"{DIARY_DIR}/{file_name}.enc"
 
@@ -203,9 +216,9 @@ class DiaryApp(QWidget):
             try:
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    QMessageBox.information(self, "成功", f"已删除日记：{file_name}")
+                    MessageUtil.show_success_message(f"已删除日记：{file_name}")
                 else:
-                    QMessageBox.warning(self, "警告", f"文件不存在：{file_path}")
+                    MessageUtil.show_warning_message(f"文件不存在：{file_path}")
 
                 # 从列表中移除对应项
                 self.diary_list.takeItem(self.diary_list.row(selected_item))
@@ -213,16 +226,16 @@ class DiaryApp(QWidget):
                 # 如果删除的是当前日记，清空编辑框
                 if self.current_file == file_name:
                     self.current_file = None
-                    self.diary_content.clear()
+                    self.diary_content.clear_content()
             except Exception as e:
-                QMessageBox.critical(self, "错误", f"删除日记失败：{str(e)}")
+                MessageUtil.show_error_message(f"删除日记失败：{str(e)}")
 
     def rename_diary(self):
         """重命名选中的日记"""
         # 获取当前选中的列表项
         current_item = self.diary_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self, "警告", "请先选择要重命名的日记！")
+            MessageUtil.show_warning_message("请先选择要重命名的日记！")
             return
 
         old_name = current_item.text()
@@ -236,7 +249,7 @@ class DiaryApp(QWidget):
         # 检查是否重名
         new_file_path = f"{DIARY_DIR}/{new_name}.enc"
         if os.path.exists(new_file_path):
-            QMessageBox.warning(self, "警告", "文件名已存在，请使用其他名称。")
+            MessageUtil.show_warning_message("文件名已存在，请使用其他名称。")
             return
 
         # 重命名文件
@@ -250,9 +263,9 @@ class DiaryApp(QWidget):
             if self.current_file == old_name:
                 self.current_file = new_name
 
-            QMessageBox.information(self, "成功", f"日记已重命名为：{new_name}")
+            MessageUtil.show_success_message(f"日记已重命名为：{new_name}")
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"重命名失败：{str(e)}")
+            MessageUtil.show_error_message(f"重命名失败：{str(e)}")
 
 if __name__ == "__main__":
     app = QApplication([])

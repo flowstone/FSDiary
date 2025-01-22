@@ -35,12 +35,16 @@ class MessageUtil:
 
         # 设置图标和标题
         if message_type == "info":
+            logger.info(message)
             msg_box.setIcon(QMessageBox.Icon.Information)
         elif message_type == "warning":
+            logger.warning(message)
             msg_box.setIcon(QMessageBox.Icon.Warning)
         elif message_type == "error":
+            logger.error(message)
             msg_box.setIcon(QMessageBox.Icon.Critical)
         else:
+            logger.info(message)
             msg_box.setIcon(QMessageBox.Icon.NoIcon)
 
         msg_box.setWindowTitle(title)

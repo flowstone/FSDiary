@@ -32,18 +32,15 @@ QComboBox::drop-down {
 }
 
 QLineEdit {
-    border: 1px solid #cccccc;
     border-radius: 5px;
     padding: 6px;
     font-size: 14px;
 }
 QLineEdit:focus {
-    border: 1px solid #66afe9;
     border-radius: 5px;
 }
 
 QTextEdit {
-    border: 1px solid #66afe9;
     border-radius: 5px;
     padding: 6px;
     font-size: 14px;
@@ -52,7 +49,6 @@ QTextEdit:read-only {
 }
 
 QListWidget{
-    border: 1px solid #66afe9;
     border-radius: 5px;
     padding: 6px;
     font-size: 14px;
