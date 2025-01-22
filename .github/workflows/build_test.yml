@@ -1,0 +1,116 @@
+# This workflow will install Python dependencies and then build FSDiary for all platforms
+
+name: Win/macOS Package
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Enable Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1.13.0
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.9"
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Build Package
+      run: |
+        nuitka  --show-progress --assume-yes-for-downloads app.py
+        mv app.exe FSDiary.exe
+        mv app.dist FSDiary.dist
+        pwd
+    - name: Upload Package
+      uses: actions/upload-artifact@v4
+      with:
+        path: D:\a\FSDiary\FSDiary\FSDiary.dist
+        name: FSDiary-Windows-bin
+    - name: Upload Onefile Package
+      uses: actions/upload-artifact@v4
+      with:
+        path: D:\a\FSDiary\FSDiary\FSDiary.exe
+        name: FSDiary-Windows-onefile-bin
+  build-macos-x86:
+    runs-on: macos-13 # macos13支持Intel平台，14之后默认是ARM平台，Intel平台要收费
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # 检出当前仓库代码
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # 根据项目实际依赖的Python版本进行调整
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt  # 安装项目依赖的Python库
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller  # 安装PyInstaller打包工具
+
+      - name: Install create-dmg tool
+        run: |
+          brew install create-dmg
+        # 安装 create-dmg 工具
+
+      - name: Build application with PyInstaller
+        run: |
+            pyinstaller --name "FSDiary" --onefile  --window   --add-data "resources:resources"  --add-data "app.ini:." --icon=resources/images/app.ico ./app.py
+
+      - name: Create DMG file from .app (macOS)
+        run: |
+           create-dmg  "dist/FSDiary.dmg"  "dist/FSDiary.app"
+
+      - name: Upload DMG Package
+        uses: actions/upload-artifact@v4
+        with:
+          path: dist/FSDiary.dmg
+          name: FSDiary-macOS-x86-bin
+  build-macos-arm:
+      runs-on: macos-latest # macos13支持Intel平台，14之后默认是ARM平台，Intel平台要收费
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3  # 检出当前仓库代码
+  
+        - name: Set up Python
+          uses: actions/setup-python@v4
+          with:
+            python-version: '3.11'  # 根据项目实际依赖的Python版本进行调整
+  
+        - name: Install dependencies
+          run: pip install -r requirements.txt  # 安装项目依赖的Python库
+  
+        - name: Install PyInstaller
+          run: pip install pyinstaller  # 安装PyInstaller打包工具
+  
+        - name: Install create-dmg tool
+          run: |
+            brew install create-dmg
+          # 安装 create-dmg 工具
+  
+        - name: Build application with PyInstaller
+          run: |
+            pyinstaller --name "FSDiary" --onefile  --window   --add-data "resources:resources" --add-data "app.ini:." --icon=resources/images/app.ico ./app.py
+  
+        - name: Create DMG file from .app (macOS)
+          run: |
+             create-dmg  "dist/FSDiary.dmg"  "dist/FSDiary.app"
+  
+        - name: Upload DMG Package
+          uses: actions/upload-artifact@v4
+          with:
+            path: dist/FSDiary.dmg
+            name: FSDiary-macOS-arm-bin
+  
+      
+      
