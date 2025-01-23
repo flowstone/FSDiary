@@ -1,12 +1,11 @@
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QMenu, QMessageBox, QInputDialog, QFileDialog, QLineEdit
+from PySide6.QtWidgets import QMenu, QMessageBox, QInputDialog, QFileDialog, QLineEdit, QListWidgetItem
 import os
 
 from loguru import logger
 
 from src.util.message_util import MessageUtil
-from src.util.encryption_util import EncryptionUtil
 from src.util.common_util import CommonUtil
 from src.const.fs_constants import FsConstants
 from weasyprint import HTML, CSS
@@ -14,13 +13,18 @@ from weasyprint.text.fonts import FontConfiguration
 
 
 class DiaryContextMenu(QMenu):
-    def __init__(self, parent, diary_tree, diary_content, current_file, key, diary_dir):
+    expand_folder_signal = Signal(QListWidgetItem)
+
+    def __init__(self, parent, diary_tree, diary_content, current_file, key, diary_dir, load_expand_folder):
         super().__init__(parent)
         self.diary_tree = diary_tree
         self.diary_content = diary_content
         self.current_file = current_file
         self.key = key
         self.diary_dir = diary_dir
+
+        # 动态绑定槽函数
+        self.expand_folder_signal.connect(load_expand_folder)
 
         selected_item = self.diary_tree.currentItem()
         self.file_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
@@ -50,7 +54,6 @@ class DiaryContextMenu(QMenu):
 
     def create_folder(self):
         """新建文件夹"""
-        from src.diary_app import DiaryApp
 
         selected_item = self.diary_tree.currentItem()
         parent_path = selected_item.data(0, Qt.ItemDataRole.UserRole) if selected_item else self.diary_dir
@@ -61,7 +64,8 @@ class DiaryContextMenu(QMenu):
             try:
                 os.makedirs(new_folder_path, exist_ok=True)
                 logger.info(f"成功创建文件夹：{folder_name}")
-                DiaryApp.expand_folder(selected_item)
+
+                self.expand_folder_signal.emit(selected_item)
             except Exception as e:
                 logger.error(f"创建文件夹失败：{str(e)}")
                 MessageUtil.show_error_message(f"创建文件夹失败：{str(e)}")

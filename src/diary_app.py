@@ -1,7 +1,7 @@
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QListWidget, \
     QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView, QTreeWidgetItem
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QObject, Signal
 import os
 from loguru import logger
 
@@ -58,6 +58,10 @@ class DiaryApp(QWidget):
         self.setLayout(main_layout)
         self.load_diary_tree()
 
+    # 动态绑定信息用到的方法
+    def load_expand_folder(self, item):
+        self.expand_folder(item)
+
     def load_diary_tree(self):
         """加载树形结构的根目录"""
         self.diary_tree.clear()
@@ -91,7 +95,7 @@ class DiaryApp(QWidget):
 
     def show_context_menu(self, position):
          """显示右键菜单"""
-         menu = DiaryContextMenu(self, self.diary_tree, self.diary_content, self.current_file, self.key, DIARY_DIR)
+         menu = DiaryContextMenu(self, self.diary_tree, self.diary_content, self.current_file, self.key, DIARY_DIR, self.load_expand_folder)
          menu.exec(self.diary_tree.viewport().mapToGlobal(position))
 
     def load_diary_or_folder(self, item):
