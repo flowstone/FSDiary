@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QSplitter, QAbstractItemView
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QSplitter, QAbstractItemView, QTreeWidget
 from PySide6.QtCore import Qt
 from src.widget.markdown_editor import MarkdownEditor
 
@@ -19,16 +19,19 @@ class UiComponents(QWidget):
         left_layout.addWidget(self.add_button)
 
         # 左侧列表
-        self.diary_list = QListWidget()
-        self.diary_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        left_layout.addWidget(self.diary_list)
+        # 左侧树形结构
+        self.diary_tree = QTreeWidget()
+        self.diary_tree.setHeaderHidden(True)  # 隐藏标题栏
+        self.diary_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.diary_tree.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        left_layout.addWidget(self.diary_tree)
 
         # 将左侧布局添加到分割器
         self.splitter.addWidget(left_widget)
 
         # 右侧编辑框
         self.diary_content = MarkdownEditor()
-        #self.diary_content.textChanged.connect(start_save_timer_callback)  # 监听文本修改
+        self.diary_content.setObjectName("markdown_editor")
         self.splitter.addWidget(self.diary_content)
 
         # 设置分割器的比例
@@ -38,5 +41,3 @@ class UiComponents(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
         self.setLayout(layout)
-
-        self.diary_list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)

@@ -63,6 +63,7 @@ class FsConstants:
     FONT_FILE_PATH = "resources/fonts/AlimamaFangYuanTiVF-Thin.ttf"
 
     DIARY_ENC_PATH = "diaries"
+    DIARY_ROOT_PATH = "diaries/Diary"
     DIARY_KEY_PATH = "secret.key"
 
     #首选项

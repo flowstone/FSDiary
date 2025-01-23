@@ -1,7 +1,10 @@
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QMenu, QMessageBox, QInputDialog, QFileDialog
+from PySide6.QtWidgets import QMenu, QMessageBox, QInputDialog, QFileDialog, QLineEdit
 import os
+
+from loguru import logger
+
 from src.util.message_util import MessageUtil
 from src.util.encryption_util import EncryptionUtil
 from src.util.common_util import CommonUtil
@@ -13,60 +16,128 @@ from weasyprint.text.fonts import FontConfiguration
 class DiaryContextMenu(QMenu):
     # 定义一个信号，用于通知当前文件已被删除
     current_file_deleted = Signal()
-    def __init__(self, parent, diary_list, diary_content, current_file, key, diary_dir):
+    def __init__(self, parent, diary_tree, diary_content, current_file, key, diary_dir):
         super().__init__(parent)
-        self.diary_list = diary_list
+        self.diary_tree = diary_tree
         self.diary_content = diary_content
         self.current_file = current_file
         self.key = key
         self.diary_dir = diary_dir
 
-        # 删除选项
-        delete_action = QAction("删除日记", self)
-        delete_action.triggered.connect(self.delete_diary)
-        self.addAction(delete_action)
+        selected_item = self.diary_tree.currentItem()
+        self.file_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
+        # 添加新建文件夹选项
+        create_folder_action = QAction("新建文件夹", self)
+        create_folder_action.triggered.connect(self.create_folder)
+        self.addAction(create_folder_action)
+        """设置工具栏"""
+        if selected_item and os.path.isdir(self.file_path):
+            rename_folder_action = QAction("重命名文件夹", self)
+            rename_folder_action.triggered.connect(self.rename_folder)  # 绑定重命名文件夹的操作
+            self.addAction(rename_folder_action)
 
-        # 重命名选项
-        rename_action = QAction("重命名日记", self)
-        rename_action.triggered.connect(self.rename_diary)
-        self.addAction(rename_action)
+        if selected_item and os.path.isfile(self.file_path):
+            # 重命名选项
+            rename_action = QAction("重命名日记", self)
+            rename_action.triggered.connect(self.rename_diary)
+            self.addAction(rename_action)
+            # 添加删除选项
+            delete_action = QAction("删除日记", self)
+            delete_action.triggered.connect(self.delete_diary)
+            self.addAction(delete_action)
+            # 导出PDF选项（仅适用于文件）
+            export_pdf_action = QAction("导出成PDF", self)
+            export_pdf_action.triggered.connect(self.export_to_pdf)
+            self.addAction(export_pdf_action)
 
-        # 导出成 PDF 选项
-        export_pdf_action = QAction("导出成PDF", self)
-        export_pdf_action.triggered.connect(self.export_to_pdf)
-        self.addAction(export_pdf_action)
+    def create_folder(self):
+        """新建文件夹"""
+        from src.diary_app import DiaryApp
+
+        selected_item = self.diary_tree.currentItem()
+        parent_path = selected_item.data(0, Qt.ItemDataRole.UserRole) if selected_item else self.diary_dir
+
+        folder_name, ok = QInputDialog.getText(self, "新建文件夹", "请输入文件夹名称：")
+        if ok and folder_name:
+            new_folder_path = os.path.join(parent_path, folder_name)
+            try:
+                os.makedirs(new_folder_path, exist_ok=True)
+                logger.info(f"成功创建文件夹：{folder_name}")
+                DiaryApp.expand_folder(selected_item)
+            except Exception as e:
+                logger.error(f"创建文件夹失败：{str(e)}")
+                MessageUtil.show_error_message(f"创建文件夹失败：{str(e)}")
+
+    def rename_folder(self):
+        """重命名选中的文件夹"""
+        selected_item = self.diary_tree.currentItem()
+        if not selected_item:
+            MessageUtil.show_warning_message("请先选择一个文件夹！")
+            return
+
+        # 获取选中项的路径
+        folder_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
+
+        if not os.path.isdir(folder_path):
+            MessageUtil.show_warning_message("选中的不是文件夹！")
+            return
+
+        # 弹出对话框让用户输入新的文件夹名称
+        new_name, ok = QInputDialog.getText(self, "重命名文件夹", "请输入新的文件夹名称:", QLineEdit.EchoMode.Normal,
+                                            selected_item.text(0))
+
+        if ok and new_name:
+            new_folder_path = os.path.join(os.path.dirname(folder_path), new_name)
+
+            try:
+                os.rename(folder_path, new_folder_path)  # 重命名文件夹
+
+                # 更新树形结构
+                selected_item.setText(0, new_name)  # 更新显示的文件夹名称
+                selected_item.setData(0, Qt.ItemDataRole.UserRole, new_folder_path)  # 更新文件夹路径
+
+                logger.info(f"文件夹 '{folder_path}' 已重命名为 '{new_folder_path}'")
+            except Exception as e:
+                logger.error(f"重命名文件夹失败：{str(e)}")
+                MessageUtil.show_error_message(f"重命名文件夹失败")
 
     def delete_diary(self):
         """删除日记"""
-        selected_item = self.diary_list.currentItem()
+        selected_item = self.diary_tree.currentItem()
         if not selected_item:
             MessageUtil.show_warning_message("请先选择一篇日记！")
             return
+        # 获取选中项的路径
+        file_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
+
+        # 确认是否删除
+        diary_name = selected_item.text(0)  # 传入 0 来获取第一列的文本
         # 确认是否删除
         reply = QMessageBox.question(
             self.parentWidget(),
             "确认删除",
-            f"确定要删除日记 '{selected_item.text()}' 吗？",
+            f"确定要删除日记 '{diary_name}' 吗？",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            file_name = selected_item.text()
-            file_path = f"{self.diary_dir}/{file_name}.enc"
-
             # 删除文件
             try:
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    MessageUtil.show_success_message(f"已删除日记：{file_name}")
+                    MessageUtil.show_success_message(f"已删除日记")
                 else:
-                    MessageUtil.show_warning_message(f"文件不存在：{file_path}")
+                    MessageUtil.show_warning_message(f"文件不存在")
 
-                # 从列表中移除对应项
-                self.diary_list.takeItem(self.diary_list.row(selected_item))
+                # 从树形结构中移除对应项
+                parent_item = selected_item.parent()
+                if parent_item:
+                    parent_item.removeChild(selected_item)
+                else:
+                    self.diary_tree.takeTopLevelItem(self.diary_tree.indexOfTopLevelItem(selected_item))
 
                 # 如果删除的是当前日记，清空编辑框
-                if self.current_file == file_name:
+                if self.current_file == diary_name:
                     self.current_file = None
                     self.diary_content.clear_content()
                     # 发射信号
@@ -74,18 +145,23 @@ class DiaryContextMenu(QMenu):
                     print("Signal current_file_deleted emitted.")
 
             except Exception as e:
-                MessageUtil.show_error_message(f"删除日记失败：{str(e)}")
+                logger.error(f"删除日记失败：{str(e)}")
+                MessageUtil.show_error_message(f"删除日记失败")
 
     def rename_diary(self):
         """重命名选中的日记"""
         # 获取当前选中的列表项
-        current_item = self.diary_list.currentItem()
+        current_item = self.diary_tree.currentItem()
         if not current_item:
             MessageUtil.show_warning_message("请先选择要重命名的日记！")
             return
 
-        old_name = current_item.text()
-        old_file_path = f"{self.diary_dir}/{old_name}.enc"
+        # 确保选中的项是文件，而不是文件夹
+        if os.path.isdir(self.file_path):
+            MessageUtil.show_warning_message("无法重命名文件夹！")
+            return
+
+        old_name = current_item.text(0)
 
         # 输入新的文件名
         new_name, ok = QInputDialog.getText(self.parentWidget(), "重命名日记", "请输入新的日记名称：", text=old_name)
@@ -100,7 +176,7 @@ class DiaryContextMenu(QMenu):
 
         # 重命名文件
         try:
-            os.rename(old_file_path, new_file_path)
+            os.rename(self.file_path, new_file_path)
 
             # 更新列表项显示名称
             current_item.setText(new_name)
@@ -109,9 +185,10 @@ class DiaryContextMenu(QMenu):
             if self.current_file == old_name:
                 self.current_file = new_name
 
-            MessageUtil.show_success_message(f"日记已重命名为：{new_name}")
+            MessageUtil.show_success_message(f"日记已重命名")
         except Exception as e:
-            MessageUtil.show_error_message(f"重命名失败：{str(e)}")
+            logger.error(f"重命名失败：{str(e)}")
+            MessageUtil.show_error_message(f"重命名失败")
 
     def export_to_pdf(self):
         """将Markdown内容导出为PDF"""

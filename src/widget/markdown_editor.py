@@ -265,6 +265,8 @@ class MarkdownEditor(QWidget):
                 <style>
                     body {{ 
                         font-family: "Consolas","Courier New",sans-serif;
+                        font-size: 16px; 
+                        padding: 6px;
                         line-height: 1.6; padding: 10px; }}
                     pre {{ padding: 10px; overflow: auto; }}
                     code {{ color: inherit; }}

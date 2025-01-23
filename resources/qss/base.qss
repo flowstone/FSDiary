@@ -4,19 +4,13 @@
 QWidget {
     font-size: 14px;
 }
-QDialog {
+QWidget#markdown_editor {
+    background-color: #f5f5f5; /* 背景色 */
+    border: 1px solid #dcdcdc; /* 边框颜色 */
+    font-size: 14px; /* 字体大小 */
+    border-radius: 8px; /* 圆角 */
 }
-QTableWidget {
-    border: none;
-    gridline-color: #dddddd;
-    font-size: 14px;
-}
-QTableWidget::item {
-    padding: 5px;
-}
-QTableWidget::item:selected {
-    background-color: #007bff;
-}
+
 QLabel {
     font-size: 14px;
 }
@@ -118,139 +112,14 @@ QSpinBox {
     max-height: 20px;
     padding: 6px;
 }
-/*
- 通用样式[END]
- */
 
-
-QLineEdit#folder_path_input {
-    border: 1px solid #cccccc;
-    border-radius: 5px;
-    padding: 6px;
-    font-size: 14px;
-}
-QLineEdit#folder_path_input:focus {
-    border: 1px solid #66afe9;
-    border-radius: 5px;
-}
-QPushButton#browse_button {
-    background-color: #008CBA;
-    border-radius: 5px;
-    padding: 8px;
-    font-size: 14px;
-    min-width: 100px;
-    margin-left: 5px;
-}
-QPushButton#browse_button:hover {
-    background-color: #007B9A;
-}
-
-
-QPushButton#start_button {
-    background-color: #4CAF50;
-    border-radius: 5px;
-    padding: 8px;
-    font-size: 14px;
-    min-width: 100px;
-}
-
-QPushButton#start_button:hover {
-    background-color: #45a049;
-}
-QPushButton#start_button:pressed {
-    background-color: #397d3a;
-}
-QPushButton#start_button:disabled {
-    background-color: gray;
-    color: white;
-}
-
-
-QPushButton#exit_button {
-    background-color: #f44336;
-    border-radius: 5px;
-    padding: 8px;
-    font-size: 14px;
-    min-width: 100px;
-}
-QPushButton#exit_button:hover {
-    background-color: #e53935;
-}
-QPushButton#exit_button:pressed {
-    background-color: #c62828;
-}
-QPushButton#exit_button:disabled {
-    background-color: gray;
-}
-QPushButton#normal {
-    font-size: 14px;
-    background-color: #0078d7;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 15px;
-}
-QPushButton#normal:hover {
-    background-color: #005bb5;
-}
-QPushButton#normal:pressed {
-    background-color: #004a9b;
-}
-QPushButton#normal:disabled {
-    background-color: gray;
-}
-/*
- 透明时间 ------------
- */
-QLabel#current_time {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-QLabel#count_time {
-    font-size: 14px;
-    font-weight: bold;
-}
 
 QLabel#app_title {
     font-size: 18px;
     font-weight: bold;
     padding: 6px;
 }
-/*
- ------END ------------
- */
 
-/*
- 主界面所有按钮颜色 --------
- */
- QPushButton#feature {
-    background-color: #008CBA;
-    border-radius: 8px;
-    padding: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    margin: 5px;
-}
-QPushButton#feature:hover {
-    background-color: #007B9A;
-}
-/*
- ------END ------------
- */
-
-QTabWidget::pane {
-    /*border: 1px solid #C2C7CB;   Tab页内容区域边框 */
-    border-radius: 8px;
-}
-QTabBar::tab {
-    border-radius: 5px;
-    margin-right: 5px;
-    padding: 8px 12px;  /* 内边距 */
-}
-QTabBar::tab:selected {
-    background-color: #84c1ff;  /* 选中Tab标签的背景色 */
-}
-QTabBar::tab:hover { background-color: #c1e3ff; }
 QScrollBar:vertical {
     border: none;
     background: #f8f9fa;
@@ -267,4 +136,38 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
 }
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
     background: none;
+}
+
+QPlainTextEdit {
+    background-color: #f5f5f5; /* 背景色 */
+    border: 1px solid #dcdcdc; /* 边框颜色 */
+    font-size: 16px; /* 字体大小 */
+    border-radius: 8px; /* 圆角 */
+    padding: 6px;
+}
+QWebEngineView {
+    background-color: #f5f5f5; /* 背景色 */
+    border: 1px solid #dcdcdc; /* 边框颜色 */
+    font-size: 16px; /* 字体大小 */
+    border-radius: 8px; /* 圆角 */
+    padding: 6px;
+}
+
+
+QTreeWidget {
+    background-color: #f5f5f5; /* 背景色 */
+    border: 1px solid #dcdcdc; /* 边框颜色 */
+    font-size: 14px; /* 字体大小 */
+    border-radius: 8px; /* 圆角 */
+
+}
+QTreeWidget::item {
+    padding: 8px; /* 项目间距 */
+}
+QTreeWidget::item:hover {
+    background-color: #e8f0fe; /* 鼠标悬停时的背景色 */
+}
+QTreeWidget::item:selected {
+    background-color: #4285f4; /* 选中时的背景色 */
+    color: white; /* 选中时的文字颜色 */
 }

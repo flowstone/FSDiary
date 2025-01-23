@@ -1,6 +1,6 @@
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QListWidget, \
-    QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView
+    QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView, QTreeWidgetItem
 from PySide6.QtCore import Qt, QTimer
 import os
 from loguru import logger
@@ -45,52 +45,92 @@ class DiaryApp(QWidget):
         # 使用封装的布局类
         self.diary_layout = UiComponents()
         add_button = self.diary_layout.add_button
-        self.diary_list = self.diary_layout.diary_list
+        self.diary_tree = self.diary_layout.diary_tree
         self.diary_content = self.diary_layout.diary_content
 
         add_button.clicked.connect(self.new_diary)
-        add_button.clicked.connect(self.new_diary)
-        self.diary_list.itemClicked.connect(self.load_diary)
-        self.diary_list.customContextMenuRequested.connect(self.show_context_menu)
+        self.diary_tree.itemClicked.connect(self.load_diary_or_folder)
+        self.diary_tree.customContextMenuRequested.connect(self.show_context_menu)
         self.diary_content.textChanged.connect(self.start_save_timer)  # 监听文本修改
 
 
         main_layout.addWidget(self.diary_layout)
         self.setLayout(main_layout)
-        self.load_diary_list()
+        self.load_diary_tree()
 
-        self.diary_list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+    def load_diary_tree(self):
+        """加载树形结构的根目录"""
+        self.diary_tree.clear()
+        root_item = QTreeWidgetItem(self.diary_tree, [os.path.basename(DIARY_DIR)])
+        root_item.setData(0, Qt.ItemDataRole.UserRole, DIARY_DIR)
+        root_item.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)  # 标记可展开
+        self.diary_tree.addTopLevelItem(root_item)
+
+    @staticmethod
+    def expand_folder(item):
+        """按需加载子目录和文件"""
+        folder_path = item.data(0, Qt.ItemDataRole.UserRole)
+        if not folder_path or not os.path.isdir(folder_path):
+            return
+        item.takeChildren()  # 清除旧子节点
+
+        # 加载子目录和文件
+        try:
+            for entry in os.scandir(folder_path):
+                # logger.info(f"处理条目：{entry.name}, 路径：{entry.path}")  # 调试输出
+                if entry.is_dir():
+                    child_item = QTreeWidgetItem(item, [entry.name])
+                    child_item.setData(0, Qt.ItemDataRole.UserRole, entry.path)  # 设置子目录路径
+                    child_item.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)
+                elif entry.is_file() and entry.name.endswith(".enc"):
+                    child_item = QTreeWidgetItem(item, [entry.name[:-4]])  # 去掉扩展名显示
+                    child_item.setData(0, Qt.ItemDataRole.UserRole, entry.path)  # 设置文件路径
+        except Exception as e:
+            logger.error(f"加载目录失败：{str(e)}")
+            MessageUtil.show_error_message(f"加载目录失败")
 
     def show_context_menu(self, position):
          """显示右键菜单"""
          # 防止menu对象销毁，信号槽绑定失效
          if not hasattr(self, 'menu') or self.menu is None:
-             self.menu = DiaryContextMenu(self, self.diary_list, self.diary_content, self.current_file, self.key, DIARY_DIR)
+             self.menu = DiaryContextMenu(self, self.diary_tree, self.diary_content, self.current_file, self.key, DIARY_DIR)
              self.menu.current_file_deleted.connect(self.update_external_current_file)
 
-         self.menu.exec(self.diary_list.viewport().mapToGlobal(position))
+         self.menu.exec(self.diary_tree.viewport().mapToGlobal(position))
 
     def update_external_current_file(self):
         self.current_file = None
 
+    def load_diary_or_folder(self, item):
+        """加载选中的日记或展开文件夹"""
+        self.file_path = item.data(0, Qt.ItemDataRole.UserRole)
+        if not self.file_path:  # 检查路径是否为 None 或空值
+            MessageUtil.show_error_message("路径无效或丢失！")
+            return
+
+        if os.path.isdir(self.file_path):
+            self.expand_folder(item)
+        else:
+            self.load_diary(item)
+
     def start_save_timer(self):
         """在用户输入时启动保存计时器"""
-        if self.current_file:  # 只有选择了日记才进行保存
+        if self.current_file or not os.path.isdir(self.current_file):  # 只有选择了日记才进行保存
             self.save_timer.start()
 
     def auto_save(self):
         """自动保存日记"""
-        if not self.current_file:
+        if not self.current_file or os.path.isdir(self.current_file):
             return
         content = self.diary_content.get_content()
-        file_path = f"{DIARY_DIR}/{self.current_file}.enc"
 
         try:
             encrypted_data = EncryptionUtil.encrypt(content.encode(), self.key)
-            with open(file_path, "wb") as file:
+            with open(self.file_path, "wb") as file:
                 file.write(encrypted_data)
         except Exception as e:
-            MessageUtil.show_error_message(f"自动保存失败：{str(e)}")
+            logger.error(f"自动保存失败：{str(e)}")
+            MessageUtil.show_error_message("自动保存失败")
 
     @staticmethod
     def load_key():
@@ -100,46 +140,22 @@ class DiaryApp(QWidget):
                 return file.read()
 
 
-    def load_diary_list(self):
-        """加载日记列表并按修改时间倒序排序"""
-        self.diary_list.clear()
-        diaries_path = CommonUtil.get_diary_enc_path()
-
-        # 获取所有 .enc 文件及其修改时间
-        diaries = [
-            (file_name[:-4], os.path.getmtime(os.path.join(diaries_path, file_name)))
-            for file_name in os.listdir(diaries_path)
-            if file_name.endswith(".enc")
-        ]
-
-        # 按修改时间倒序排序
-        diaries.sort(key=lambda x: x[1], reverse=True)
-
-        # 添加到列表
-        for file_name, _ in diaries:
-            self.diary_list.addItem(file_name)
-
-        # 默认选择第一个日记并加载内容
-        if self.diary_list.count() > 0:
-            first_item = self.diary_list.item(0)
-            self.diary_list.setCurrentItem(first_item)
-            self.load_diary(first_item)
-
 
     def load_diary(self, item):
         """加载选中的日记"""
-        # 自动保存当前日记内容
-        if self.current_file:
-            self.auto_save()
 
-        # 获取选中的日记文件名
-        self.current_file = item.text()
-        file_path = f"{DIARY_DIR}/{self.current_file}.enc"
-
+        # 获取选中的日记文件路径
+        selected_item = self.diary_tree.currentItem()
+        self.current_file = selected_item.text(0)
         # 检查文件是否存在
-        if not os.path.exists(file_path):
-            MessageUtil.show_warning_message(f"日记文件不存在：{file_path}")
-            self.diary_list.takeItem(self.diary_list.row(item))
+        if not os.path.exists(self.file_path):
+            logger.info(f"日记文件不存在：{self.file_path}")
+            MessageUtil.show_warning_message(f"日记文件不存在")
+            parent_item = item.parent()
+            if parent_item:
+                parent_item.removeChild(item)
+            else:
+                self.diary_tree.takeTopLevelItem(self.diary_tree.indexOfTopLevelItem(item))
             self.current_file = None
             return
 
@@ -151,62 +167,78 @@ class DiaryApp(QWidget):
 
         # 加载并显示日记内容
         try:
-            with open(file_path, "rb") as file:
+            with open(self.file_path, "rb") as file:
                 encrypted_data = file.read()
                 content = EncryptionUtil.decrypt(encrypted_data, self.key).decode()
                 self.diary_content.set_content(content)
         except Exception as e:
-            MessageUtil.show_error_message(f"无法加载日记：{str(e)}")
-            self.diary_list.takeItem(self.diary_list.row(item))
+            logger.error(f"无法加载日记：{str(e)}")
+            MessageUtil.show_error_message(f"无法加载日记")
+            parent_item = item.parent()
+            if parent_item:
+                parent_item.removeChild(item)
+            else:
+                self.diary_tree.takeTopLevelItem(self.diary_tree.indexOfTopLevelItem(item))
             self.current_file = None
 
     def new_diary(self):
         """新建日记"""
         file_name, ok = QInputDialog.getText(self, "新建日记", "请输入日记标题：")
-        if ok and file_name:
-            self.current_file = file_name
+
+        if not ok or not file_name.strip():
+            return  # 用户取消或未输入内容
+
+        self.current_file = file_name.strip()
+        selected_item = self.diary_tree.currentItem()
+        if not selected_item:
             file_path = f"{DIARY_DIR}/{self.current_file}.enc"
+        # 获取选中项的路径
+        else:
+            select_file_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
+            if os.path.isdir(select_file_path):
+                file_path = f"{select_file_path}/{self.current_file}.enc"
+            else:
+                file_path = f"{os.path.dirname(select_file_path)}/{self.current_file}.enc"
 
-            # 如果文件已存在，提示用户选择其他名称
-            if os.path.exists(file_path):
-                MessageUtil.show_warning_message("同名日记已存在，请使用其他名称。")
-                return
+        logger.info(f"当前创建文件的全路径:{file_path}")
 
-            # 创建一个空的加密文件
-            try:
-                encrypted_data = EncryptionUtil.encrypt("".encode(), self.key)
-                with open(file_path, "wb") as file:
-                    file.write(encrypted_data)
-
-            except Exception as e:
-                MessageUtil.show_error_message(f"无法创建新日记文件：{str(e)}")
-                return
-
-            # 重新加载列表（新建的文件会自动排在第一位）
-            self.load_diary_list()
-
-            # 自动选中新建条目
-            first_item = self.diary_list.item(0)
-            self.diary_list.setCurrentItem(first_item)
-            self.diary_content.clear_content()
-
-            MessageUtil.show_success_message(f"已创建新日记：{file_name}")
-
-    def save_diary(self):
-        content = self.diary_content.get_content()
-        if not content:
-            MessageUtil.show_warning_message("日记内容不能为空！")
+        # 如果文件已存在，提示用户选择其他名称
+        if os.path.exists(file_path):
+            MessageUtil.show_warning_message("同名日记已存在，请使用其他名称。")
             return
-        file_name, ok = QInputDialog.getText(self, "保存日记", "请输入日记标题：")
-        if ok and file_name:
-            try:
-                encrypted_data = EncryptionUtil.encrypt(content.encode(), self.key)
-                with open(f"{DIARY_DIR}/{file_name}.enc", "wb") as file:
-                    file.write(encrypted_data)
-                self.load_diary_list()
-                MessageUtil.show_success_message("日记已保存！")
-            except Exception as e:
-                MessageUtil.show_error_message(f"无法保存日记：{str(e)}")
+
+        # 创建一个空的加密文件
+        try:
+            encrypted_data = EncryptionUtil.encrypt("".encode(), self.key)
+            with open(file_path, "wb") as file:
+                file.write(encrypted_data)
+
+        except Exception as e:
+            logger.error(f"无法创建新日记文件：{str(e)}")
+            MessageUtil.show_error_message(f"无法创建新日记文件")
+            return
+
+        # 重新加载列表（新建的文件会自动排在第一位）
+        self.load_diary_tree()
+
+        # 在树形控件中选中新建的日记
+        item = self.find_diary_item(file_path)
+        if item:
+            self.diary_tree.setCurrentItem(item)
+
+        # 清空内容编辑器
+        self.diary_content.clear_content()
+        # 成功提示
+        logger.info(f"已创建新日记：{self.current_file}")
+
+    def find_diary_item(self, file_path):
+        """根据文件路径找到对应的树形控件条目"""
+        root = self.diary_tree.invisibleRootItem()
+        for i in range(root.childCount()):
+            item = root.child(i)
+            if item.data(0, Qt.ItemDataRole.UserRole) == file_path:
+                return item
+        return None
 
 
     def closeEvent(self, event):
