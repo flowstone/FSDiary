@@ -41,7 +41,7 @@ class MarkdownEditor(QWidget):
 
         # 预览框
         self.preview = QWebEngineView(self)
-        self.preview.setUrl(QUrl("about:blank"))  # 设置初始空白页面
+        #self.preview.setUrl(QUrl("about:blank"))  # 设置初始空白页面
         self.preview.setVisible(False)
 
         main_layout.addWidget(self.preview)
@@ -265,6 +265,10 @@ class MarkdownEditor(QWidget):
                 <style>
                     body {{ 
                         font-family: "Consolas","Courier New",sans-serif;
+                        background-color: #f5f5f5; 
+                        border: 1px solid #dcdcdc; 
+                        font-size: 14px; 
+                        border-radius: 8px; 
                         line-height: 1.6; padding: 10px; }}
                     pre {{ padding: 10px; overflow: auto; }}
                     code {{ color: inherit; }}

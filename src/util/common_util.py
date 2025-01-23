@@ -175,7 +175,7 @@ class CommonUtil:
 
         # 优先使用外部配置文件
         data_path = CommonUtil.get_external_path()
-        return os.path.join(data_path, FsConstants.DIARY_ENC_PATH)
+        return os.path.join(data_path, FsConstants.DIARY_ROOT_PATH)
 
     @staticmethod
     def get_diary_key_path():
