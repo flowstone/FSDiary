@@ -33,7 +33,7 @@ class DiaryApp(QWidget):
         self.menu = None
         # 保存延迟计时器
         self.save_timer = QTimer()
-        self.save_timer.setInterval(10000)  # 2 秒延迟
+        self.save_timer.setInterval(5000)  # 2 秒延迟
         self.save_timer.setSingleShot(True)
         self.save_timer.timeout.connect(self.auto_save)
 
@@ -91,15 +91,8 @@ class DiaryApp(QWidget):
 
     def show_context_menu(self, position):
          """显示右键菜单"""
-         # 防止menu对象销毁，信号槽绑定失效
-         if not hasattr(self, 'menu') or self.menu is None:
-             self.menu = DiaryContextMenu(self, self.diary_tree, self.diary_content, self.current_file, self.key, DIARY_DIR)
-             self.menu.current_file_deleted.connect(self.update_external_current_file)
-
-         self.menu.exec(self.diary_tree.viewport().mapToGlobal(position))
-
-    def update_external_current_file(self):
-        self.current_file = None
+         menu = DiaryContextMenu(self, self.diary_tree, self.diary_content, self.current_file, self.key, DIARY_DIR)
+         menu.exec(self.diary_tree.viewport().mapToGlobal(position))
 
     def load_diary_or_folder(self, item):
         """加载选中的日记或展开文件夹"""
@@ -115,12 +108,12 @@ class DiaryApp(QWidget):
 
     def start_save_timer(self):
         """在用户输入时启动保存计时器"""
-        if self.current_file or not os.path.isdir(self.current_file):  # 只有选择了日记才进行保存
+        if self.current_file or not os.path.isdir(self.file_path):  # 只有选择了日记才进行保存
             self.save_timer.start()
 
     def auto_save(self):
         """自动保存日记"""
-        if not self.current_file or os.path.isdir(self.current_file):
+        if not self.current_file or os.path.isdir(self.file_path):
             return
         content = self.diary_content.get_content()
 

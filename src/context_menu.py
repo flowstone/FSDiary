@@ -14,8 +14,6 @@ from weasyprint.text.fonts import FontConfiguration
 
 
 class DiaryContextMenu(QMenu):
-    # 定义一个信号，用于通知当前文件已被删除
-    current_file_deleted = Signal()
     def __init__(self, parent, diary_tree, diary_content, current_file, key, diary_dir):
         super().__init__(parent)
         self.diary_tree = diary_tree
@@ -140,9 +138,7 @@ class DiaryContextMenu(QMenu):
                 if self.current_file == diary_name:
                     self.current_file = None
                     self.diary_content.clear_content()
-                    # 发射信号
-                    self.current_file_deleted.emit()
-                    print("Signal current_file_deleted emitted.")
+
 
             except Exception as e:
                 logger.error(f"删除日记失败：{str(e)}")
