@@ -228,8 +228,8 @@ class MarkdownEditor(QWidget):
 
     def switch_to_preview(self):
         """切换到预览模式"""
-        self.preview.setVisible(True)
         self.diary_editor.setVisible(False)
+        self.preview.setVisible(True)
         self._is_preview = True
         self.update_preview()
         # 禁用所有工具栏按钮，除了“编辑模式”按钮
@@ -279,10 +279,8 @@ class MarkdownEditor(QWidget):
                             console.error('Prism.js 未正确加载！');
                         }} else {{
                             console.log('Prism.js 加载成功');
-                            // 延迟执行以确保 Prism.js 加载完成
-                            setTimeout(function() {{
-                                Prism.highlightAll();
-                            }}, 100);  // 延时 100ms 执行高亮，确保 Prism.js 完全加载
+                            Prism.highlightAll();
+
                         }}
                     }});
             </script>
@@ -296,6 +294,8 @@ class MarkdownEditor(QWidget):
 
     def set_content(self, content):
         """设置编辑器中的内容"""
+        # 清空之前预览框中的值
+        self.preview.setHtml("")
         self.diary_editor.setPlainText(content)
 
     def clear_content(self):

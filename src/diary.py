@@ -132,6 +132,11 @@ class DiaryApp(QWidget):
         for file_name in os.listdir(diaries_path):
             if file_name.endswith(".enc"):
                 self.diary_list.addItem(file_name[:-4])
+        # 默认选择第一个日记并加载内容
+        if self.diary_list.count() > 0:
+            first_item = self.diary_list.item(0)  # 获取第一个条目
+            self.diary_list.setCurrentItem(first_item)  # 设置为选中状态
+            self.load_diary(first_item)  # 加载选中的日记
 
     def load_diary(self, item):
         """加载选中的日记"""
