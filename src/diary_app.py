@@ -6,6 +6,8 @@ import os
 from loguru import logger
 
 from src.const.fs_constants import FsConstants
+from src.context_menu import DiaryContextMenu
+from src.ui_components import UiComponents
 from src.util.common_util import CommonUtil
 from src.util.encryption_util import EncryptionUtil
 from src.util.message_util import MessageUtil
@@ -28,10 +30,10 @@ class DiaryApp(QWidget):
 
         # 当前日记文件
         self.current_file = None
-
+        self.menu = None
         # 保存延迟计时器
         self.save_timer = QTimer()
-        self.save_timer.setInterval(2000)  # 2 秒延迟
+        self.save_timer.setInterval(10000)  # 2 秒延迟
         self.save_timer.setSingleShot(True)
         self.save_timer.timeout.connect(self.auto_save)
 
@@ -40,66 +42,36 @@ class DiaryApp(QWidget):
     def init_ui(self):
         # 主界面布局
         main_layout = QHBoxLayout()
-        # 添加分割器
-        self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
-        # 左侧布局（按钮 + 列表）
-        left_widget = QWidget()
-        left_layout = QVBoxLayout(left_widget)
+        # 使用封装的布局类
+        self.diary_layout = UiComponents()
+        add_button = self.diary_layout.add_button
+        self.diary_list = self.diary_layout.diary_list
+        self.diary_content = self.diary_layout.diary_content
 
-        # 新建日记按钮
-        add_button = QPushButton("新建日记")
         add_button.clicked.connect(self.new_diary)
-        left_layout.addWidget(add_button)
-
-        # 左侧列表
-        self.diary_list = QListWidget()
+        add_button.clicked.connect(self.new_diary)
         self.diary_list.itemClicked.connect(self.load_diary)
-        self.diary_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.diary_list.customContextMenuRequested.connect(self.show_context_menu)
-        left_layout.addWidget(self.diary_list)
-
-        # 将左侧布局添加到分割器
-        self.splitter.addWidget(left_widget)
-
-        # 右侧编辑框
-        self.diary_content = MarkdownEditor()
         self.diary_content.textChanged.connect(self.start_save_timer)  # 监听文本修改
-        self.splitter.addWidget(self.diary_content)
 
-        # 设置分割器的比例
-        self.splitter.setStretchFactor(0, 2)  # 左侧占比较小
-        self.splitter.setStretchFactor(1, 5)  # 右侧占比较大
 
-        # 添加分割器到主布局
-        main_layout.addWidget(self.splitter)
-
+        main_layout.addWidget(self.diary_layout)
         self.setLayout(main_layout)
-
         self.load_diary_list()
 
         self.diary_list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
 
     def show_context_menu(self, position):
-        """显示右键菜单"""
-        menu = QMenu()
+         """显示右键菜单"""
+         # 防止menu对象销毁，信号槽绑定失效
+         if not hasattr(self, 'menu') or self.menu is None:
+             self.menu = DiaryContextMenu(self, self.diary_list, self.diary_content, self.current_file, self.key, DIARY_DIR)
+             self.menu.current_file_deleted.connect(self.update_external_current_file)
 
-        # 添加删除选项
-        delete_action = QAction("删除日记", self)
-        delete_action.triggered.connect(self.delete_diary)
-        menu.addAction(delete_action)
+         self.menu.exec(self.diary_list.viewport().mapToGlobal(position))
 
-        # 重命名选项
-        rename_action = QAction("重命名日记", self)
-        rename_action.triggered.connect(self.rename_diary)
-        menu.addAction(rename_action)
-
-        # 重命名选项
-        export_pdf_action = QAction("导出成PDF", self)
-        export_pdf_action.triggered.connect(self.export_to_pdf)
-        menu.addAction(export_pdf_action)
-
-        # 在列表中显示右键菜单
-        menu.exec(self.diary_list.viewport().mapToGlobal(position))
+    def update_external_current_file(self):
+        self.current_file = None
 
     def start_save_timer(self):
         """在用户输入时启动保存计时器"""
@@ -235,127 +207,6 @@ class DiaryApp(QWidget):
                 MessageUtil.show_success_message("日记已保存！")
             except Exception as e:
                 MessageUtil.show_error_message(f"无法保存日记：{str(e)}")
-
-    def delete_diary(self):
-        """删除日记"""
-        selected_item = self.diary_list.currentItem()
-        if not selected_item:
-            MessageUtil.show_warning_message("请先选择一篇日记！")
-            return
-        # 确认是否删除
-        reply = QMessageBox.question(
-            self,
-            "确认删除",
-            f"确定要删除日记 '{selected_item.text()}' 吗？",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-
-        if reply == QMessageBox.StandardButton.Yes:
-            file_name = selected_item.text()
-            file_path = f"{DIARY_DIR}/{file_name}.enc"
-
-            # 删除文件
-            try:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-                    MessageUtil.show_success_message(f"已删除日记：{file_name}")
-                else:
-                    MessageUtil.show_warning_message(f"文件不存在：{file_path}")
-
-                # 从列表中移除对应项
-                self.diary_list.takeItem(self.diary_list.row(selected_item))
-
-                # 如果删除的是当前日记，清空编辑框
-                if self.current_file == file_name:
-                    self.current_file = None
-                    self.diary_content.clear_content()
-            except Exception as e:
-                MessageUtil.show_error_message(f"删除日记失败：{str(e)}")
-
-    def rename_diary(self):
-        """重命名选中的日记"""
-        # 获取当前选中的列表项
-        current_item = self.diary_list.currentItem()
-        if not current_item:
-            MessageUtil.show_warning_message("请先选择要重命名的日记！")
-            return
-
-        old_name = current_item.text()
-        old_file_path = f"{DIARY_DIR}/{old_name}.enc"
-
-        # 输入新的文件名
-        new_name, ok = QInputDialog.getText(self, "重命名日记", "请输入新的日记名称：", text=old_name)
-        if not ok or not new_name:
-            return  # 用户取消操作或输入为空
-
-        # 检查是否重名
-        new_file_path = f"{DIARY_DIR}/{new_name}.enc"
-        if os.path.exists(new_file_path):
-            MessageUtil.show_warning_message("文件名已存在，请使用其他名称。")
-            return
-
-        # 重命名文件
-        try:
-            os.rename(old_file_path, new_file_path)
-
-            # 更新列表项显示名称
-            current_item.setText(new_name)
-
-            # 如果重命名的是当前正在编辑的文件，更新 self.current_file
-            if self.current_file == old_name:
-                self.current_file = new_name
-
-            MessageUtil.show_success_message(f"日记已重命名为：{new_name}")
-        except Exception as e:
-            MessageUtil.show_error_message(f"重命名失败：{str(e)}")
-
-    def export_to_pdf(self):
-        """将Markdown内容导出为PDF"""
-        if not self.current_file:
-            MessageUtil.show_warning_message("请先选择一篇日记！")
-            return
-
-        # # 检查Markdown编辑器是否处于预览模式
-        if not self.diary_content.is_preview_mode():
-            MessageUtil.show_warning_message("请切换到预览模式再进行导出！")
-            return
-
-        # 弹出保存文件对话框，让用户选择保存路径
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "导出为 PDF",
-            f"{self.current_file}.pdf",
-            "PDF 文件 (*.pdf)"
-        )
-
-        if not file_path:  # 用户取消操作
-            return
-
-        # 获取HTML内容的回调函数
-        def handle_html_content(html_content):
-            try:
-                if not html_content.strip():
-                    MessageUtil.show_warning_message("当前内容为空，无法导出为PDF！")
-                    return
-                font_config = FontConfiguration()
-                html = HTML(string=html_content)
-                css = CSS(string=f'''
-                    @font-face {{
-                        font-family: CustomFont;
-                        src: url({CommonUtil.get_resource_path(FsConstants.FONT_FILE_PATH)});
-                    }}
-                    body {{ font-family: CustomFont }}''', font_config=font_config)
-                html.write_pdf(
-                    file_path, stylesheets=[css],
-                    font_config=font_config)
-                # 使用WeasyPrint将HTML导出为PDF
-                HTML(string=html_content).write_pdf(file_path)
-                MessageUtil.show_success_message(f"已成功导出 PDF：{file_path}")
-            except Exception as e:
-                MessageUtil.show_error_message(f"导出 PDF 失败：{str(e)}")
-
-        # 获取HTML内容
-        self.diary_content.get_preview_html(handle_html_content)
 
 
     def closeEvent(self, event):
