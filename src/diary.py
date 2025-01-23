@@ -1,6 +1,6 @@
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QListWidget, \
-    QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog
+    QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView
 from PySide6.QtCore import Qt, QTimer
 import os
 from loguru import logger
@@ -77,6 +77,8 @@ class DiaryApp(QWidget):
 
         self.load_diary_list()
 
+        self.diary_list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+
     def show_context_menu(self, position):
         """显示右键菜单"""
         menu = QMenu()
@@ -127,16 +129,30 @@ class DiaryApp(QWidget):
 
 
     def load_diary_list(self):
+        """加载日记列表并按修改时间倒序排序"""
         self.diary_list.clear()
         diaries_path = CommonUtil.get_diary_enc_path()
-        for file_name in os.listdir(diaries_path):
-            if file_name.endswith(".enc"):
-                self.diary_list.addItem(file_name[:-4])
+
+        # 获取所有 .enc 文件及其修改时间
+        diaries = [
+            (file_name[:-4], os.path.getmtime(os.path.join(diaries_path, file_name)))
+            for file_name in os.listdir(diaries_path)
+            if file_name.endswith(".enc")
+        ]
+
+        # 按修改时间倒序排序
+        diaries.sort(key=lambda x: x[1], reverse=True)
+
+        # 添加到列表
+        for file_name, _ in diaries:
+            self.diary_list.addItem(file_name)
+
         # 默认选择第一个日记并加载内容
         if self.diary_list.count() > 0:
-            first_item = self.diary_list.item(0)  # 获取第一个条目
-            self.diary_list.setCurrentItem(first_item)  # 设置为选中状态
-            self.load_diary(first_item)  # 加载选中的日记
+            first_item = self.diary_list.item(0)
+            self.diary_list.setCurrentItem(first_item)
+            self.load_diary(first_item)
+
 
     def load_diary(self, item):
         """加载选中的日记"""
@@ -183,6 +199,7 @@ class DiaryApp(QWidget):
             if os.path.exists(file_path):
                 MessageUtil.show_warning_message("同名日记已存在，请使用其他名称。")
                 return
+
             # 创建一个空的加密文件
             try:
                 encrypted_data = EncryptionUtil.encrypt("".encode(), self.key)
@@ -193,9 +210,14 @@ class DiaryApp(QWidget):
                 MessageUtil.show_error_message(f"无法创建新日记文件：{str(e)}")
                 return
 
-            self.diary_list.addItem(self.current_file)
+            # 重新加载列表（新建的文件会自动排在第一位）
+            self.load_diary_list()
 
+            # 自动选中新建条目
+            first_item = self.diary_list.item(0)
+            self.diary_list.setCurrentItem(first_item)
             self.diary_content.clear_content()
+
             MessageUtil.show_success_message(f"已创建新日记：{file_name}")
 
     def save_diary(self):

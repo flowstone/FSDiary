@@ -48,10 +48,28 @@ QTextEdit {
 QTextEdit:read-only {
 }
 
-QListWidget{
+QListWidget {
+    font-size: 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #dcdcdc;
+    padding: 5px;
     border-radius: 5px;
-    padding: 6px;
-    font-size: 14px;
+}
+QListWidget::item {
+    padding: 10px;
+    margin: 2px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+QListWidget::item:hover {
+    background-color: #e9ecef;
+    border: 1px solid #007bff;
+    color: #007bff;
+}
+QListWidget::item:selected {
+    background-color: #1E90FF;
+    color: white;
+    border: 1px solid #0056b3;
 }
 
 QPushButton {
@@ -233,3 +251,20 @@ QTabBar::tab:selected {
     background-color: #84c1ff;  /* 选中Tab标签的背景色 */
 }
 QTabBar::tab:hover { background-color: #c1e3ff; }
+QScrollBar:vertical {
+    border: none;
+    background: #f8f9fa;
+    width: 10px;
+    margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:vertical {
+    background: #ced4da;
+    border-radius: 5px;
+    min-height: 20px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
