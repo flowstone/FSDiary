@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QSystemTrayIcon
 
 from PySide6.QtGui import QIcon, Qt, QDragEnterEvent, QDropEvent
 
-from src.diary import DiaryApp
+from src.diary_app import DiaryApp
 from src.widget.app_mini import FloatingBall
 from loguru import logger
 from src.util.common_util import CommonUtil

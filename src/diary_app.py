@@ -308,6 +308,7 @@ class DiaryApp(QWidget):
             MessageUtil.show_success_message(f"日记已重命名为：{new_name}")
         except Exception as e:
             MessageUtil.show_error_message(f"重命名失败：{str(e)}")
+
     def export_to_pdf(self):
         """将Markdown内容导出为PDF"""
         if not self.current_file:
@@ -355,6 +356,12 @@ class DiaryApp(QWidget):
 
         # 获取HTML内容
         self.diary_content.get_preview_html(handle_html_content)
+
+
+    def closeEvent(self, event):
+        self.auto_save()
+        # 调用父类关闭事件
+        super().closeEvent(event)
 
 if __name__ == "__main__":
     app = QApplication([])
