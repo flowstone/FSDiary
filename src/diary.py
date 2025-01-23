@@ -1,13 +1,17 @@
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QListWidget, \
-    QMessageBox, QInputDialog, QWidget, QMenu, QSplitter
+    QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog
 from PySide6.QtCore import Qt, QTimer
 import os
 from loguru import logger
+
+from src.const.fs_constants import FsConstants
 from src.util.common_util import CommonUtil
 from src.util.encryption_util import EncryptionUtil
 from src.util.message_util import MessageUtil
 from src.widget.markdown_editor import MarkdownEditor
+from weasyprint import HTML, CSS
+from weasyprint.text.fonts import FontConfiguration
 
 DIARY_DIR = f"{CommonUtil.get_diary_enc_path()}"
 
@@ -86,6 +90,11 @@ class DiaryApp(QWidget):
         rename_action = QAction("重命名日记", self)
         rename_action.triggered.connect(self.rename_diary)
         menu.addAction(rename_action)
+
+        # 重命名选项
+        export_pdf_action = QAction("导出成PDF", self)
+        export_pdf_action.triggered.connect(self.export_to_pdf)
+        menu.addAction(export_pdf_action)
 
         # 在列表中显示右键菜单
         menu.exec(self.diary_list.viewport().mapToGlobal(position))
@@ -272,6 +281,53 @@ class DiaryApp(QWidget):
             MessageUtil.show_success_message(f"日记已重命名为：{new_name}")
         except Exception as e:
             MessageUtil.show_error_message(f"重命名失败：{str(e)}")
+    def export_to_pdf(self):
+        """将Markdown内容导出为PDF"""
+        if not self.current_file:
+            MessageUtil.show_warning_message("请先选择一篇日记！")
+            return
+
+        # # 检查Markdown编辑器是否处于预览模式
+        if not self.diary_content.is_preview_mode():
+            MessageUtil.show_warning_message("请切换到预览模式再进行导出！")
+            return
+
+        # 弹出保存文件对话框，让用户选择保存路径
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出为 PDF",
+            f"{self.current_file}.pdf",
+            "PDF 文件 (*.pdf)"
+        )
+
+        if not file_path:  # 用户取消操作
+            return
+
+        # 获取HTML内容的回调函数
+        def handle_html_content(html_content):
+            try:
+                if not html_content.strip():
+                    MessageUtil.show_warning_message("当前内容为空，无法导出为PDF！")
+                    return
+                font_config = FontConfiguration()
+                html = HTML(string=html_content)
+                css = CSS(string=f'''
+                    @font-face {{
+                        font-family: CustomFont;
+                        src: url({CommonUtil.get_resource_path(FsConstants.FONT_FILE_PATH)});
+                    }}
+                    body {{ font-family: CustomFont }}''', font_config=font_config)
+                html.write_pdf(
+                    file_path, stylesheets=[css],
+                    font_config=font_config)
+                # 使用WeasyPrint将HTML导出为PDF
+                HTML(string=html_content).write_pdf(file_path)
+                MessageUtil.show_success_message(f"已成功导出 PDF：{file_path}")
+            except Exception as e:
+                MessageUtil.show_error_message(f"导出 PDF 失败：{str(e)}")
+
+        # 获取HTML内容
+        self.diary_content.get_preview_html(handle_html_content)
 
 if __name__ == "__main__":
     app = QApplication([])

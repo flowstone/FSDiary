@@ -1,3 +1,5 @@
+import os
+
 from PySide6 import QtCore
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QVBoxLayout, QWidget, QSizePolicy, QColorDialog, \
@@ -7,12 +9,15 @@ from PySide6.QtCore import Signal, QUrl
 from PySide6.QtWidgets import QInputDialog
 
 from src.const.fs_constants import FsConstants
+from src.util.app_init_util import AppInitUtil
 from src.util.common_util import CommonUtil
 from src.widget.image_button import ImageButton
 from markdown_it import MarkdownIt
 from datetime import datetime  # 用于插入时间
 from loguru import  logger
 from PySide6.QtWidgets import QToolBar
+
+#os.environ["FC_DEBUG"] = "1"  # 打开字体调试模式
 
 class MarkdownEditor(QWidget):
     # 定义一个自定义信号
@@ -253,11 +258,14 @@ class MarkdownEditor(QWidget):
         styled_html = f"""
             <html>
             <head>
+                <meta charset="UTF-8">
                 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-tomorrow.css" rel="stylesheet">
                 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/prism.js"></script>
                 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/components/prism-python.min.js"></script>
                 <style>
-                    body {{ line-height: 1.6; padding: 10px; }}
+                    body {{ 
+                        font-family: "Consolas","Courier New",sans-serif;
+                        line-height: 1.6; padding: 10px; }}
                     pre {{ padding: 10px; overflow: auto; }}
                     code {{ color: inherit; }}
                 </style>
@@ -292,3 +300,10 @@ class MarkdownEditor(QWidget):
 
     def clear_content(self):
         self.diary_editor.clear()
+
+    def get_preview_html(self, callback):
+        """异步获取预览内容的HTML"""
+        if self.is_preview_mode():
+            self.preview.page().toHtml(callback)
+        else:
+            callback("")  # 编辑模式下没有预览内容

@@ -12,3 +12,4 @@ pillow==11.1.0
 numpy==2.0.2
 cryptography==44.0.0
 markdown-it-py==3.0.0
+weasyprint==63.1
