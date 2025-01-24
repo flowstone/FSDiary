@@ -128,7 +128,7 @@ class DiaryApp(QWidget):
 
     def start_save_timer(self):
         """在用户输入时启动保存计时器"""
-        if self.current_file or not os.path.isdir(self.file_path):  # 只有选择了日记才进行保存
+        if self.current_file:  # 只有选择了日记才进行保存
             self.save_timer.start()
 
     def auto_save(self):
