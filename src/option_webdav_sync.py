@@ -129,7 +129,6 @@ class OptionWebDavSync(QWidget):
 
     def connect_webdav(self):
         """连接 WebDAV"""
-        logger.info("开启WebDAV同步")
         url = self.webdav_url.text().strip()
         username = self.webdav_username.text().strip()
         password = self.webdav_password.text().strip()
@@ -148,6 +147,23 @@ class OptionWebDavSync(QWidget):
         except Exception as e:
             MessageUtil.show_error_message("无法连接到 WebDAV 服务器")
 
+    def init_sync_webdav(self):
+        url = self.webdav_url.text().strip()
+        username = self.webdav_username.text().strip()
+        password = self.webdav_password.text().strip()
+
+        if not url or not username or not password:
+            MessageUtil.show_warning_message("请填写完整的 WebDAV 配置")
+            return
+        try:
+            self.client = Client({
+                "webdav_hostname": url,
+                "webdav_login": username,
+                "webdav_password": password,
+            })
+        except Exception as e:
+            MessageUtil.show_error_message("无法连接到 WebDAV 服务器")
+        self.start_auto_sync()
 
     def sync_files(self):
         """同步文件"""

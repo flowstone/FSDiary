@@ -34,7 +34,7 @@ class DiaryApp(QWidget):
 
         # 初始化 WebDav 同步类
         self.webdav_sync = OptionWebDavSync()
-        self.init_connect_webdav_signal.connect(self.webdav_sync.start_auto_sync())
+        self.init_connect_webdav_signal.connect(self.webdav_sync.init_sync_webdav())
 
         # 当前日记文件
         self.current_file = None
