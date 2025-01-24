@@ -1,4 +1,4 @@
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QListWidget, \
     QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView, QTreeWidgetItem
 from PySide6.QtCore import Qt, QTimer, QObject, Signal
@@ -79,6 +79,7 @@ class DiaryApp(QWidget):
         root_item = QTreeWidgetItem(self.diary_tree, [os.path.basename(DIARY_DIR)])
         root_item.setData(0, Qt.ItemDataRole.UserRole, DIARY_DIR)
         root_item.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)  # 标记可展开
+        root_item.setIcon(0, QIcon(CommonUtil.get_resource_path(FsConstants.ROOT_FOLDER_TREE_ICON_PATH)))
         self.diary_tree.addTopLevelItem(root_item)
 
     @staticmethod
@@ -97,9 +98,13 @@ class DiaryApp(QWidget):
                     child_item = QTreeWidgetItem(item, [entry.name])
                     child_item.setData(0, Qt.ItemDataRole.UserRole, entry.path)  # 设置子目录路径
                     child_item.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)
+                    child_item.setIcon(0, QIcon(CommonUtil.get_resource_path(FsConstants.FOLDER_TREE_ICON_PATH)))
+
                 elif entry.is_file() and entry.name.endswith(".enc"):
                     child_item = QTreeWidgetItem(item, [entry.name[:-4]])  # 去掉扩展名显示
                     child_item.setData(0, Qt.ItemDataRole.UserRole, entry.path)  # 设置文件路径
+                    child_item.setIcon(0, QIcon(CommonUtil.get_resource_path(FsConstants.DIARY_TREE_ICON_PATH)))
+
         except Exception as e:
             logger.error(f"加载目录失败：{str(e)}")
             MessageUtil.show_error_message(f"加载目录失败")

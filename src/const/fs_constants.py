@@ -57,6 +57,10 @@ class FsConstants:
     FOLDER_RENAME_RIGHT_MENU_PATH = "resources/images/menu/folder_rename.svg"
     PDF_RIGHT_MENU_PATH = "resources/images/menu/pdf.svg"
 
+    DIARY_TREE_ICON_PATH = "resources/images/icon/diary-tree.svg"
+    FOLDER_TREE_ICON_PATH = "resources/images/icon/folder-tree.svg"
+    ROOT_FOLDER_TREE_ICON_PATH = "resources/images/icon/root-folder.svg"
+
 
     # 保存文件路径
     SAVE_FILE_PATH_WIN = "C:\\FSDiary\\"
