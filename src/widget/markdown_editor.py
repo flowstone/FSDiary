@@ -17,11 +17,9 @@ from datetime import datetime  # 用于插入时间
 from loguru import  logger
 from PySide6.QtWidgets import QToolBar
 
-#os.environ["FC_DEBUG"] = "1"  # 打开字体调试模式
-
 class MarkdownEditor(QWidget):
     # 定义一个自定义信号
-    textChanged = Signal()
+    textChangedSignal = Signal()
 
     def __init__(self):
         super().__init__()
@@ -70,6 +68,12 @@ class MarkdownEditor(QWidget):
         toolbar.addAction(italic_action)
         self.toolbar_actions['italic'] = italic_action
 
+        # 添加文字突出显示按钮
+        highlight_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.PEN_LINE_ICON_PATH)), "突出显示",self)
+        highlight_action.triggered.connect(self.highlight_text)
+        toolbar.addAction(highlight_action)
+        self.toolbar_actions['highlight'] = highlight_action
+
         # 插入链接按钮
         link_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.LINK_ICON_PATH)), "插入链接", self)
         link_action.triggered.connect(self.insert_link)
@@ -107,6 +111,42 @@ class MarkdownEditor(QWidget):
         toolbar.addAction(dynamic_table_action)
         self.toolbar_actions['table'] = dynamic_table_action
 
+        # 插入标题 H1 按钮
+        h1_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.H1_ICON_PATH)), "H1", self)
+        h1_action.triggered.connect(lambda: self.insert_header(1))
+        toolbar.addAction(h1_action)
+        self.toolbar_actions['h1'] = h1_action
+
+        # 插入标题 H2 按钮
+        h2_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.H2_ICON_PATH)), "H2", self)
+        h2_action.triggered.connect(lambda: self.insert_header(2))
+        toolbar.addAction(h2_action)
+        self.toolbar_actions['h2'] = h2_action
+
+        # 插入标题 H3 按钮
+        h3_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.H3_ICON_PATH)), "H3", self)
+        h3_action.triggered.connect(lambda: self.insert_header(3))
+        toolbar.addAction(h3_action)
+        self.toolbar_actions['h3'] = h3_action
+
+        # 插入无序列表按钮
+        unordered_list_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.UNORDERED_LIST_ICON_PATH)), "• 无序列表", self)
+        unordered_list_action.triggered.connect(self.insert_unordered_list)
+        toolbar.addAction(unordered_list_action)
+        self.toolbar_actions['unordered_list'] = unordered_list_action
+
+        # 插入有序列表按钮
+        ordered_list_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.ORDERED_LIST_ICON_PATH)), "1. 有序列表", self)
+        ordered_list_action.triggered.connect(self.insert_ordered_list)
+        toolbar.addAction(ordered_list_action)
+        self.toolbar_actions['ordered_list'] = ordered_list_action
+
+        # 插入复选框列表按钮
+        checkbox_list_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.CHECKBOX_LIST_ICON_PATH)), "☑ 复选框列表", self)
+        checkbox_list_action.triggered.connect(self.insert_checkbox_list)
+        #toolbar.addAction(checkbox_list_action)
+        self.toolbar_actions['checkbox_list'] = checkbox_list_action
+
         # 插入时间戳按钮
         timestamp_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.TIMESTAMP_ICON_PATH)), "插入时间", self)
         timestamp_action.triggered.connect(self.insert_time)
@@ -138,15 +178,45 @@ class MarkdownEditor(QWidget):
 
     def insert_bold(self):
         """插入加粗Markdown语法"""
+        """加粗选中文字"""
         cursor = self.diary_editor.textCursor()
-        cursor.insertText("**加粗文本**")
-        self.diary_editor.setTextCursor(cursor)
+        if cursor.hasSelection():
+            selected_text = cursor.selectedText()
+            cursor.insertText(f'**{selected_text}**')
+            self.diary_editor.setTextCursor(cursor)
+        else:
+            logger.warning("未选中文字，无法加粗！")
 
     def insert_italic(self):
         """插入斜体Markdown语法"""
         cursor = self.diary_editor.textCursor()
-        cursor.insertText("*斜体文本*")
-        self.diary_editor.setTextCursor(cursor)
+        if cursor.hasSelection():
+            selected_text = cursor.selectedText()
+            cursor.insertText(f'*{selected_text}*')
+            self.diary_editor.setTextCursor(cursor)
+        else:
+            logger.warning("未选中文字，无法斜体！")
+
+
+    def highlight_text(self):
+        """为选中文字添加背景色"""
+        # 获取当前光标
+        cursor = self.diary_editor.textCursor()
+        if not cursor.hasSelection():
+            logger.warning("未选中文字，无法添加背景色！")
+            return
+
+        # 打开颜色选择器
+        color = QColorDialog.getColor()
+        # 如果用户选择了有效的颜色
+        if color.isValid():
+            color_code = color.name()  # 获取颜色的十六进制代码
+            # 将选中文字用带背景颜色的 span 包裹
+            selected_text = cursor.selectedText()
+            highlighted_text = f'<span style="background-color: {color_code};">{selected_text}</span>'
+            # 替换选中文字
+            cursor.insertText(highlighted_text)
+            self.diary_editor.setTextCursor(cursor)
 
     def insert_link(self):
         """插入链接Markdown语法"""
@@ -162,14 +232,18 @@ class MarkdownEditor(QWidget):
 
     def insert_color(self):
         """插入带有用户选择颜色的文字"""
+        cursor = self.diary_editor.textCursor()
+        if not cursor.hasSelection():
+            logger.warning("未选中文字，无法添加字体颜色！")
+            return
         # 打开颜色选择器
         color = QColorDialog.getColor()
 
         # 如果用户选择了有效的颜色
         if color.isValid():
+            selected_text = cursor.selectedText()
             color_code = color.name()  # 获取颜色的十六进制代码
-            cursor = self.diary_editor.textCursor()
-            cursor.insertText(f'<span style="color: {color_code};">自定义颜色文字</span>')
+            cursor.insertText(f'<span style="color: {color_code};">{selected_text}</span>')
             self.diary_editor.setTextCursor(cursor)
 
 
@@ -182,7 +256,7 @@ class MarkdownEditor(QWidget):
     def insert_blockquote(self):
         """插入引用"""
         cursor = self.diary_editor.textCursor()
-        cursor.insertText("> 引用文本")
+        cursor.insertText(">")
         self.diary_editor.setTextCursor(cursor)
 
 
@@ -209,6 +283,30 @@ class MarkdownEditor(QWidget):
         cursor.insertText(table_template)
         self.diary_editor.setTextCursor(cursor)
 
+    def insert_header(self, level):
+        """插入标题 Markdown 语法"""
+        cursor = self.diary_editor.textCursor()
+        cursor.insertText(f"{'#' * level} 标题 {level}\n")
+        self.diary_editor.setTextCursor(cursor)
+
+    def insert_unordered_list(self):
+        """插入无序列表"""
+        cursor = self.diary_editor.textCursor()
+        cursor.insertText("- 列表项 1\n- 列表项 2\n- 列表项 3\n")
+        self.diary_editor.setTextCursor(cursor)
+
+    def insert_ordered_list(self):
+        """插入有序列表"""
+        cursor = self.diary_editor.textCursor()
+        cursor.insertText("1. 列表项 1\n2. 列表项 2\n3. 列表项 3\n")
+        self.diary_editor.setTextCursor(cursor)
+
+    def insert_checkbox_list(self):
+        """插入复选框列表"""
+        cursor = self.diary_editor.textCursor()
+        cursor.insertText("- [ ] 未完成项 1\n- [x] 已完成项 2\n- [ ] 未完成项 3\n")
+        self.diary_editor.setTextCursor(cursor)
+
     def insert_time(self):
         """插入当前时间"""
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -218,7 +316,7 @@ class MarkdownEditor(QWidget):
 
     def emit_text_changed(self):
         """当编辑器内容发生变化时触发自定义信号"""
-        self.textChanged.emit()
+        self.textChangedSignal.emit()
 
     def is_preview_mode(self):
         """检查是否处于预览模式"""

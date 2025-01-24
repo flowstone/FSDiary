@@ -199,3 +199,4 @@ QMenu::icon {
 QMessageBox {
     font-size: 14px;
 }
+

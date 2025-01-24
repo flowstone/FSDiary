@@ -59,7 +59,7 @@ class DiaryApp(QWidget):
         add_button.clicked.connect(self.new_diary)
         self.diary_tree.itemClicked.connect(self.load_diary_or_folder)
         self.diary_tree.customContextMenuRequested.connect(self.show_context_menu)
-        self.diary_content.textChanged.connect(self.start_save_timer)  # 监听文本修改
+        self.diary_content.textChangedSignal.connect(self.start_save_timer)  # 监听文本修改
 
 
         main_layout.addWidget(self.diary_layout)
