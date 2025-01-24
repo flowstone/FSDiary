@@ -29,7 +29,7 @@ import sys
 from multiprocessing import freeze_support
 import multiprocessing
 
-from PySide6.QtGui import QFont, QPalette
+from PySide6.QtGui import QFont, QPalette, Qt
 from PySide6.QtWidgets import QApplication, QStyleFactory
 from loguru import logger
 
@@ -67,6 +67,8 @@ def main():
     font_family = AppInitUtil.load_external_font()
     if font_family:
         app.setFont(QFont(font_family))
+
+    app.setAttribute(Qt.ApplicationAttribute.AA_DontShowIconsInMenus, False)
 
     window = MainWindow()
     window.show()

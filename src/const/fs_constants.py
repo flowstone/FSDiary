@@ -51,6 +51,11 @@ class FsConstants:
 
     PRISM_JS_PATH = "resources/prism"
 
+    FILE_REMOVE_RIGHT_MENU_PATH = "resources/images/menu/file-remove.svg"
+    FILE_RENAME_RIGHT_MENU_PATH = "resources/images/menu/file-rename.svg"
+    FOLDER_ADD_RIGHT_MENU_PATH = "resources/images/menu/folder-add.svg"
+    FOLDER_RENAME_RIGHT_MENU_PATH = "resources/images/menu/folder_rename.svg"
+    PDF_RIGHT_MENU_PATH = "resources/images/menu/pdf.svg"
 
 
     # 保存文件路径

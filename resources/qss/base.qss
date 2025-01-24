@@ -83,14 +83,7 @@ QPushButton:pressed {
 QPushButton:disabled {
     background-color: gray;
 }
-QMenuBar {
-}
-QMenuBar::item {
-    padding: 5px;
-}
-QMenuBar::item:selected {
-    background: #d1d1d1;
-}
+
 QVBoxLayout {
     spacing: 20px;
 }
@@ -187,3 +180,22 @@ QTabBar::tab:selected {
     background-color: #84c1ff;  /* 选中Tab标签的背景色 */
 }
 QTabBar::tab:hover { background-color: #c1e3ff; }
+
+QMenu {
+    background-color: #f9f9f9;  /* 背景颜色 */
+    border: 1px solid #ccc;    /* 边框 */
+}
+QMenu::item {
+    padding: 8px 20px;         /* 内边距 */
+    background-color: transparent;
+}
+QMenu::item:selected {        /* 选中时的样式 */
+    background-color: #0078d7;
+    color: white;
+}
+QMenu::icon {
+    margin-left: 20px; /* 调整图标距离左边的间距 */
+}
+QMessageBox {
+    font-size: 14px;
+}

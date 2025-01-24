@@ -1,5 +1,5 @@
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu, QMessageBox, QInputDialog, QFileDialog, QLineEdit, QListWidgetItem
 import os
 
@@ -29,26 +29,34 @@ class DiaryContextMenu(QMenu):
         selected_item = self.diary_tree.currentItem()
         self.file_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
         # 添加新建文件夹选项
-        create_folder_action = QAction("新建文件夹", self)
+        create_folder_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.FOLDER_ADD_RIGHT_MENU_PATH)), "新建文件夹", self)
         create_folder_action.triggered.connect(self.create_folder)
         self.addAction(create_folder_action)
+        self.addSeparator()  # 分隔线
+
         """设置工具栏"""
         if selected_item and os.path.isdir(self.file_path):
-            rename_folder_action = QAction("重命名文件夹", self)
+            logger.info(f"{CommonUtil.get_resource_path(FsConstants.FOLDER_RENAME_RIGHT_MENU_PATH)}")
+            rename_folder_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.FOLDER_RENAME_RIGHT_MENU_PATH)), "重命名文件夹", self)
             rename_folder_action.triggered.connect(self.rename_folder)  # 绑定重命名文件夹的操作
             self.addAction(rename_folder_action)
+            self.addSeparator()  # 分隔线
 
         if selected_item and os.path.isfile(self.file_path):
             # 重命名选项
-            rename_action = QAction("重命名日记", self)
+            rename_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.FILE_RENAME_RIGHT_MENU_PATH)), "重命名日记", self)
             rename_action.triggered.connect(self.rename_diary)
             self.addAction(rename_action)
+            self.addSeparator()  # 分隔线
+
             # 添加删除选项
-            delete_action = QAction("删除日记", self)
+            delete_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.FILE_REMOVE_RIGHT_MENU_PATH)), "删除日记", self)
             delete_action.triggered.connect(self.delete_diary)
             self.addAction(delete_action)
+            self.addSeparator()  # 分隔线
+
             # 导出PDF选项（仅适用于文件）
-            export_pdf_action = QAction("导出成PDF", self)
+            export_pdf_action = QAction(QIcon(CommonUtil.get_resource_path(FsConstants.PDF_RIGHT_MENU_PATH)), "导出成PDF", self)
             export_pdf_action.triggered.connect(self.export_to_pdf)
             self.addAction(export_pdf_action)
 
