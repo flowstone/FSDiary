@@ -31,28 +31,25 @@ class ConfigUtil:
 
 
     @staticmethod
-    def get_ini_github_token():
+    def get_ini_sync_webdav_param(param:str):
         """
-        从 INI 文件加载 Github Token
+        sync.webdav.auto_checked
+        sync.webdav.address
+        sync.webdav.username
+        sync.webdav.password
+        sync.webdav.remote_dir
+        sync.webdav.local_dir
         """
         config, _ = ConfigUtil.get_ini_config()
-        return config.get("Github", "token", fallback="")
+        return config.get("Settings", param, fallback="")
 
     @staticmethod
-    def get_ini_github_repo():
+    def get_ini_sync_webdav_auto_checked():
         """
-        从 INI 文件加载 Github Repo
-        """
-        config, _ = ConfigUtil.get_ini_config()
-        return config.get("Github", "repo", fallback="")
-
-    @staticmethod
-    def get_ini_github_base_folder():
-        """
-        从 INI 文件加载 Github Repo
+        从 INI 文件读取 WebDAV 自动同步
         """
         config, _ = ConfigUtil.get_ini_config()
-        return config.get("Github", "base_folder", fallback="")
+        return config.getboolean("Settings", "sync.webdav.auto_checked", fallback=False)
 
     # 从 INI 文件读取 遮罩是否启用的配置
     @staticmethod
@@ -116,42 +113,30 @@ class ConfigUtil:
         else:
             return CommonUtil.get_resource_path(FsConstants.APP_BAR_ICON_FULL_PATH)
 
-
-    # 将应用可见性写入到 INI 配置文件中
     @staticmethod
-    def set_ini_github_token(token):
+    def set_ini_sync_webdav_param(param: str, value: str):
         """
-        将 Flask 服务的启用状态写入到 INI 配置文件中，保留注释。
-        :param token: str, 。
+        sync.webdav.auto_checked
+        sync.webdav.address
+        sync.webdav.username
+        sync.webdav.password
+        sync.webdav.remote_dir
+        sync.webdav.local_dir
         """
         config, ini_path = ConfigUtil.get_ini_config()
         # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Github", "token", token)
-        logger.info(f"Github Token 已更新为: {token}")
-
-
-    @staticmethod
-    def set_ini_github_repo(repo):
-        """
-        将 应用字体加粗的启用状态写入到 INI 配置文件中，保留注释。
-        :param repo: str, True 表示启用 应用字体加粗，False 表示禁用。
-        """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Github", "repo", repo)
-        logger.info(f"Github Repo 已更新为: {repo}")
+        ConfigUtil.update_ini_line(ini_path, "Settings", param, value)
+        logger.info(f"WebDAV {param} 已更新为: {value}")
 
     @staticmethod
-    def set_ini_github_base_folder(repo):
-        """
-        将 应用字体加粗的启用状态写入到 INI 配置文件中，保留注释。
-        :param repo: str, True 表示启用 应用字体加粗，False 表示禁用。
-        """
+    def set_ini_sync_webdav_auto_checked(enabled):
         config, ini_path = ConfigUtil.get_ini_config()
         # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Github", "base_folder", repo)
-        logger.info(f"Github 根目录已更新为: {repo}")
-    # 从 INI 文件读取 遮罩是否启用的配置
+        ConfigUtil.update_ini_line(ini_path, "Settings", "sync.webdav.auto_checked", "true" if enabled else "false")
+        logger.info(f"WebDAV状态已更新为: {'启用' if enabled else '禁用'}")
+
+
+
     @staticmethod
     def set_ini_mini_mask_checked(enabled):
         """

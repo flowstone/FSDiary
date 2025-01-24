@@ -51,7 +51,7 @@ class OptionGeneral(MenuWindowWidget):
 
     def create_advanced_group(self):
         """创建高级设置组"""
-        group_box = QGroupBox("高级设置")
+        group_box = QGroupBox("个性化设置")
         layout = QVBoxLayout()
 
         # 遮罩动画复选框

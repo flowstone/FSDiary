@@ -171,3 +171,19 @@ QTreeWidget::item:selected {
     background-color: #4285f4; /* 选中时的背景色 */
     color: white; /* 选中时的文字颜色 */
 }
+
+
+
+QTabWidget::pane {
+    /*border: 1px solid #C2C7CB;   Tab页内容区域边框 */
+    border-radius: 8px;
+}
+QTabBar::tab {
+    border-radius: 5px;
+    margin-right: 5px;
+    padding: 8px 12px;  /* 内边距 */
+}
+QTabBar::tab:selected {
+    background-color: #84c1ff;  /* 选中Tab标签的背景色 */
+}
+QTabBar::tab:hover { background-color: #c1e3ff; }

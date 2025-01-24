@@ -22,7 +22,7 @@ class AppInitUtil:
             logger.info(f"创建FSDiary文件夹:{external_dir}")
             os.makedirs(external_dir)
         # 文章列表
-        diaries_path = CommonUtil.get_diary_enc_path()
+        diaries_path = CommonUtil.get_diary_article_path()
         if not os.path.exists(diaries_path):
             logger.info(f"创建FSDiary的文章文件夹:{external_dir}")
             os.makedirs(diaries_path)

@@ -7,17 +7,21 @@ from loguru import logger
 
 from src.const.fs_constants import FsConstants
 from src.context_menu import DiaryContextMenu
+from src.option_webdav_sync import OptionWebDavSync
 from src.ui_components import UiComponents
 from src.util.common_util import CommonUtil
+from src.util.config_util import ConfigUtil
 from src.util.encryption_util import EncryptionUtil
 from src.util.message_util import MessageUtil
 from src.widget.markdown_editor import MarkdownEditor
 from weasyprint import HTML, CSS
 from weasyprint.text.fonts import FontConfiguration
 
-DIARY_DIR = f"{CommonUtil.get_diary_enc_path()}"
+DIARY_DIR = f"{CommonUtil.get_diary_article_path()}"
 
 class DiaryApp(QWidget):
+    init_connect_webdav_signal = Signal()
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("日记应用")
@@ -27,6 +31,10 @@ class DiaryApp(QWidget):
         if not self.key:
             MessageUtil.show_error_message("无法加载密钥文件！")
             exit()
+
+        # 初始化 WebDav 同步类
+        self.webdav_sync = OptionWebDavSync()
+        self.init_connect_webdav_signal.connect(self.webdav_sync.start_auto_sync())
 
         # 当前日记文件
         self.current_file = None
@@ -58,6 +66,8 @@ class DiaryApp(QWidget):
         self.setLayout(main_layout)
         self.load_diary_tree()
 
+        if ConfigUtil.get_ini_sync_webdav_auto_checked():
+            self.init_connect_webdav_signal.emit()
     # 动态绑定信息用到的方法
     def load_expand_folder(self, item):
         self.expand_folder(item)
