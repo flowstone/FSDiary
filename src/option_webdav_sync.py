@@ -166,47 +166,82 @@ class OptionWebDavSync(QWidget):
         self.start_auto_sync()
 
     def sync_files(self):
-        """同步文件"""
+        """同步文件（支持文件夹，并自动创建文件夹）"""
         local_dir = self.local_dir.text().strip()
         remote_dir = self.remote_dir.text().strip()
-        if not os.path.exists(remote_dir):
-            MessageUtil.show_warning_message("远程目录不存在")
-            return
+
         if not os.path.exists(local_dir):
             MessageUtil.show_warning_message("本地目录不存在")
             return
-
         if not self.client:
             MessageUtil.show_warning_message("请先连接 WebDAV 服务器")
             return
 
         try:
-            # 下载远程文件
-            for file in self.client.list(remote_dir):
-                remote_file_path = f"/{file}"
-                local_file_path = os.path.join(local_dir, file)
-                if not os.path.exists(local_file_path):
-                    try:
-                        with open(local_file_path, "wb") as f:
-                            self.client.download_sync(remote_path=remote_file_path, local_path=local_file_path)
-                        logger.info(f"下载文件: {file}")
-                    except Exception as e:
-                        logger.error(f"下载文件失败: {file}, 错误信息: {str(e)}")
+            # 下载远程目录到本地
+            self.sync_remote_to_local(remote_dir, local_dir)
 
-            # 上传本地文件
-            for file in os.listdir(local_dir):
-                remote_file_path = f"/{file}"
-                local_file_path = os.path.join(local_dir, file)
-                try:
-                    with open(local_file_path, "rb") as f:
-                        self.client.upload_sync(remote_path=remote_file_path, local_path=local_file_path)
-                    logger.info(f"上传文件: {file}")
-                except Exception as e:
-                    logger.error(f"上传文件失败: {file}, 错误信息: {str(e)}")
+            # 上传本地目录到远程
+            self.sync_local_to_remote(local_dir, remote_dir)
 
             logger.info("文件同步完成")
         except Exception as e:
-            logger.warning(f"文件同步失败: {str(e)}")
+            logger.error(f"文件同步失败: {str(e)}")
+
+    def sync_remote_to_local(self, remote_dir, local_dir):
+        """递归下载远程目录到本地，并创建本地文件夹"""
+        try:
+            # 确保本地目录存在
+            os.makedirs(local_dir, exist_ok=True)
+
+            # 获取远程目录内容
+            for item in self.client.list(remote_dir):
+                remote_path = f"{remote_dir}/{item}"
+                local_path = os.path.join(local_dir, item)
+
+                # 判断是否是文件夹
+                if self.client.is_dir(remote_path):
+                    # 创建本地文件夹并递归下载
+                    logger.info(f"创建本地文件夹: {local_path}")
+                    self.sync_remote_to_local(remote_path, local_path)
+                else:
+                    # 下载文件
+                    try:
+                        with open(local_path, "wb") as f:
+                            self.client.download_sync(remote_path=remote_path, local_path=local_path)
+                        logger.info(f"下载文件: {remote_path} -> {local_path}")
+                    except Exception as e:
+                        logger.error(f"下载文件失败: {remote_path}, 错误信息: {str(e)}")
+        except Exception as e:
+            logger.error(f"下载远程目录失败: {remote_dir}, 错误信息: {str(e)}")
+
+    def sync_local_to_remote(self, local_dir, remote_dir):
+        """递归上传本地目录到远程，并创建远程文件夹"""
+        try:
+            # 确保远程目录存在
+            if not self.client.check(remote_dir):
+                self.client.mkdir(remote_dir)
+                logger.info(f"创建远程文件夹: {remote_dir}")
+
+            # 遍历本地目录内容
+            for item in os.listdir(local_dir):
+                local_path = os.path.join(local_dir, item)
+                remote_path = f"{remote_dir}/{item}"
+
+                if os.path.isdir(local_path):
+                    # 如果是文件夹，递归上传
+                    logger.info(f"创建远程文件夹: {remote_path}")
+                    self.sync_local_to_remote(local_path, remote_path)
+                else:
+                    # 上传文件
+                    try:
+                        with open(local_path, "rb") as f:
+                            self.client.upload_sync(remote_path=remote_path, local_path=local_path)
+                        logger.info(f"上传文件: {local_path} -> {remote_path}")
+                    except Exception as e:
+                        logger.error(f"上传文件失败: {local_path}, 错误信息: {str(e)}")
+        except Exception as e:
+            logger.error(f"上传本地目录失败: {local_dir}, 错误信息: {str(e)}")
 
     def start_auto_sync(self):
         """启动自动同步"""
