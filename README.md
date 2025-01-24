@@ -8,7 +8,9 @@
 基础代码基于【[FS-Tool-Pro](https://github.com/flowstone/FS-Tool-Pro)】: https://github.com/flowstone/FS-Tool-Pro
 
 ### 应用界面
->略
+<img src="https://raw.githubusercontent.com/flowstone/FSDiary/main/preview/1.png" alt="应用截图">
+<img src="https://raw.githubusercontent.com/flowstone/FSDiary/main/preview/2.png" alt="应用截图">
+
 
 ### 📜 许可证
 
