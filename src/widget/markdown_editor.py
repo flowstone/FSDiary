@@ -2,7 +2,7 @@ import os
 
 from PySide6 import QtCore
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWebEngineCore import QWebEngineProfile
+from PySide6.QtWebEngineCore import QWebEngineProfile, QWebEngineSettings
 
 from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QWidget, QSizePolicy, QColorDialog
 from PySide6.QtGui import QIcon, QAction
@@ -15,6 +15,12 @@ from markdown_it import MarkdownIt
 from datetime import datetime  # 用于插入时间
 from loguru import  logger
 from PySide6.QtWidgets import QToolBar
+
+from src.util.load_resources_util import LoadResourcesUtil
+
+
+# 设置环境变量 Remote debugging server
+#os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
 
 class MarkdownEditor(QWidget):
     # 定义一个自定义信号
@@ -57,21 +63,29 @@ class MarkdownEditor(QWidget):
         # 设置主布局
         self.setLayout(main_layout)
 
+        # 启用开发者工具
+        # 用于保存开发者工具窗口的引用
+        self.dev_tools = None
+        #self.enable_dev_tools()
+
+    def enable_dev_tools(self):
+        # 确保开发者工具只创建一次
+        if not self.dev_tools:
+            self.dev_tools = QWebEngineView()  # 创建开发者工具窗口
+            self.dev_tools.setWindowTitle("Developer Tools")
+            self.dev_tools.resize(800, 600)
+            self.dev_tools.show()
+
+            # 将开发者工具绑定到主窗口的 QWebEngineView
+            self.preview.page().setDevToolsPage(self.dev_tools.page())
+
+            # 保持窗口可见
+            self.dev_tools.raise_()
+            self.dev_tools.activateWindow()
+
     def load_resources(self):
         """提前加载预览所需的外部资源"""
-        static_resources = """
-        <html>
-        <head>
-            <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-coy.min.css" rel="stylesheet">
-            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
-            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" defer></script>
-            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js" defer></script>
-            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js" defer></script>
-            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-php.min.js" defer></script>
-        </head>
-        <body></body>
-        </html>
-        """
+        static_resources = LoadResourcesUtil.static_resources()
         self.resource_loader.setHtml(static_resources, QUrl("https://cdn.jsdelivr.net/"))
 
     def add_toolbar(self):
@@ -384,8 +398,12 @@ class MarkdownEditor(QWidget):
                 <meta charset="UTF-8">
                 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-coy.min.css" rel="stylesheet">
                 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
-                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js" defer></script>
-
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" defer></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {{
+                        Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/';
+                    }});                
+                </script>
                 <style>
                     body {{ 
                         font-family: "Consolas","Courier New",sans-serif;
