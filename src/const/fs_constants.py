@@ -56,8 +56,6 @@ class FsConstants:
     CHECKBOX_LIST_ICON_PATH = "resources/images/icon/checkbox-list.svg"
     TIMESTAMP_ICON_PATH = "resources/images/icon/time.svg"
 
-    PRISM_JS_PATH = "resources/prism"
-
     FILE_REMOVE_RIGHT_MENU_PATH = "resources/images/menu/file-remove.svg"
     FILE_RENAME_RIGHT_MENU_PATH = "resources/images/menu/file-rename.svg"
     FOLDER_ADD_RIGHT_MENU_PATH = "resources/images/menu/folder-add.svg"

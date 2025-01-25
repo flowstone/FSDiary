@@ -6,7 +6,7 @@ pyinstaller==6.11.1
 certifi==2024.12.14
 charset-normalizer==3.4.1
 idna==3.10
-urllib3== 2.3.0
+urllib3==2.3.0
 wheel== 0.41.2
 pillow==11.1.0
 numpy==2.0.2

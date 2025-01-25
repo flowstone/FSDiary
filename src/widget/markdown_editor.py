@@ -2,16 +2,15 @@ import os
 
 from PySide6 import QtCore
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QPlainTextEdit, QTextBrowser, QVBoxLayout, QWidget, QSizePolicy, QColorDialog, \
-    QInputDialog
+from PySide6.QtWebEngineCore import QWebEngineProfile
+
+from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QWidget, QSizePolicy, QColorDialog
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtCore import Signal, QUrl
 from PySide6.QtWidgets import QInputDialog
 
 from src.const.fs_constants import FsConstants
-from src.util.app_init_util import AppInitUtil
 from src.util.common_util import CommonUtil
-from src.widget.image_button import ImageButton
 from markdown_it import MarkdownIt
 from datetime import datetime  # 用于插入时间
 from loguru import  logger
@@ -24,6 +23,8 @@ class MarkdownEditor(QWidget):
     def __init__(self):
         super().__init__()
         self._is_preview = False
+        # 使用 markdown-it-py 进行 Markdown 渲染
+        self.md_parser = MarkdownIt("commonmark").enable("table")
 
         # 创建一个垂直布局
         main_layout = QVBoxLayout(self)
@@ -41,11 +42,37 @@ class MarkdownEditor(QWidget):
         self.preview = QWebEngineView(self)
         self.preview.setUrl(QUrl("about:blank"))  # 设置初始空白页面
         self.preview.setVisible(False)
-
         main_layout.addWidget(self.preview)
+
+        #QWebEngineView 使用了 HTTP 缓存
+        profile = QWebEngineProfile.defaultProfile()
+        profile.setHttpCacheType(QWebEngineProfile.HttpCacheType.DiskHttpCache)  # 使用磁盘缓存
+        profile.setPersistentCookiesPolicy(QWebEngineProfile.PersistentCookiesPolicy.ForcePersistentCookies)  # 持久化 cookies
+
+        # 隐藏的 QWebEngineView，用于加载资源
+        self.resource_loader = QWebEngineView()
+        self.resource_loader.hide()
+        self.load_resources()
 
         # 设置主布局
         self.setLayout(main_layout)
+
+    def load_resources(self):
+        """提前加载预览所需的外部资源"""
+        static_resources = """
+        <html>
+        <head>
+            <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-coy.min.css" rel="stylesheet">
+            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
+            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" defer></script>
+            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js" defer></script>
+            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js" defer></script>
+            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-php.min.js" defer></script>
+        </head>
+        <body></body>
+        </html>
+        """
+        self.resource_loader.setHtml(static_resources, QUrl("https://cdn.jsdelivr.net/"))
 
     def add_toolbar(self):
         """添加工具栏"""
@@ -348,18 +375,17 @@ class MarkdownEditor(QWidget):
         """实时更新 Markdown 预览"""
         content = self.diary_editor.toPlainText()
 
-        # 使用 markdown-it-py 进行 Markdown 渲染
         # 启用表格解析功能
-        md = MarkdownIt("commonmark").enable("table")
-        html_content = md.render(content)
+        html_content = self.md_parser.render(content)
         # 添加样式
         styled_html = f"""
             <html>
             <head>
                 <meta charset="UTF-8">
-                <link href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-tomorrow.css" rel="stylesheet">
-                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/prism.js"></script>
-                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/components/prism-python.min.js"></script>
+                <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-coy.min.css" rel="stylesheet">
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js" defer></script>
+                <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js" defer></script>
+
                 <style>
                     body {{ 
                         font-family: "Consolas","Courier New",sans-serif;
