@@ -86,15 +86,15 @@ class ConfigManager(QObject):
         elif key == ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY:
             IniUtil.set_ini_app_param(IniUtil.APP_MINI_BREATHING_LIGHT_CHECKED_KEY, value)
         elif key == ConfigManager.APP_MINI_CHECKED_KEY:
-            IniUtil.set_ini_sync_webdav_param(IniUtil.APP_MINI_CHECKED_KEY, value)
+            IniUtil.set_ini_app_param(IniUtil.APP_MINI_CHECKED_KEY, value)
         elif key == ConfigManager.APP_MINI_SIZE_KEY:
-            IniUtil.set_ini_sync_webdav_param(IniUtil.APP_MINI_SIZE_KEY, value)
+            IniUtil.set_ini_app_param(IniUtil.APP_MINI_SIZE_KEY, value)
         elif key == ConfigManager.APP_MINI_IMAGE_KEY:
-            IniUtil.set_ini_sync_webdav_param(IniUtil.APP_MINI_IMAGE_KEY, value)
+            IniUtil.set_ini_app_param(IniUtil.APP_MINI_IMAGE_KEY, value)
         elif key == ConfigManager.APP_TRAY_MENU_CHECKED_KEY:
-            IniUtil.set_ini_sync_webdav_param(IniUtil.APP_TRAY_MENU_CHECKED_KEY, value)
+            IniUtil.set_ini_app_param(IniUtil.APP_TRAY_MENU_CHECKED_KEY, value)
         elif key == ConfigManager.APP_TRAY_MENU_IMAGE_KEY:
-            IniUtil.set_ini_sync_webdav_param(IniUtil.APP_TRAY_MENU_IMAGE_KEY, value)
+            IniUtil.set_ini_app_param(IniUtil.APP_TRAY_MENU_IMAGE_KEY, value)
 
         elif key == ConfigManager.WEBDAV_AUTO_CHECKED_KEY:
             IniUtil.set_ini_sync_webdav_param(IniUtil.WEBDAV_AUTO_CHECKED_KEY, value)

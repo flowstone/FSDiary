@@ -22,7 +22,7 @@ class FloatingBall(QWidget):
         self.config_manager = ConfigManager()
         self.config_manager.config_updated.connect(self.on_config_updated)
 
-        self.background_image = self.config_manager.get_config(ConfigManager.APP_MINI_IMAGE_KEY)
+        self.app_mini_ico = self.config_manager.get_config(ConfigManager.APP_MINI_IMAGE_KEY)
         self.mini_mask_checked = self.config_manager.get_config(ConfigManager.APP_MINI_MASK_CHECKED_KEY)
         self.app_mini_size = self.config_manager.get_config(ConfigManager.APP_MINI_SIZE_KEY)
 
@@ -160,7 +160,7 @@ class FloatingBall(QWidget):
     def setup_background_image(self):
         logger.info("---- 初始化悬浮球背景图 ----")
         layout = QVBoxLayout()
-        pixmap = QPixmap(self.background_image)
+        pixmap = QPixmap(self.app_mini_ico)
         pixmap = pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.background_label = QLabel(self)
         self.background_label.setPixmap(pixmap)
@@ -237,16 +237,19 @@ class FloatingBall(QWidget):
                 self.mask.hide()
                 self.mask_animation.stop()
                 self.breathing_animation.stop()
-        elif key == ConfigManager.APP_MINI_IMAGE_KEY:
-            pixmap = QPixmap(value)
+        elif key == ConfigManager.APP_MINI_CHECKED_KEY:
+            self.app_mini_ico = self.config_manager.get_config(ConfigManager.APP_MINI_IMAGE_KEY)
+            self.app_mini_size = self.config_manager.get_config(ConfigManager.APP_MINI_SIZE_KEY)
+            # 设置悬浮球背景
+            pixmap = QPixmap(self.app_mini_ico)
             pixmap = pixmap.scaled(self.app_mini_size,self.app_mini_size, Qt.AspectRatioMode.KeepAspectRatio,
                                    Qt.TransformationMode.SmoothTransformation)
             self.background_label.setPixmap(pixmap)
 
-        elif key == ConfigManager.APP_MINI_SIZE_KEY:
-             self.app_mini_size = value
-             self.setGeometry(0, 0, value, value)  # 设置悬浮球大小
-             self.move_to_top_right()
+            # 设置悬浮球大小
+            self.setGeometry(0, 0, self.app_mini_size, self.app_mini_size)  # 设置悬浮球大小
+            self.move_to_top_right()
+
         elif key == ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY:
             if value:
                 self.timer_light.start(50)
