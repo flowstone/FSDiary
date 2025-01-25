@@ -29,6 +29,41 @@ class ConfigUtil:
             config.read(ini_path, encoding="utf-8")
         return config, ini_path
 
+    @staticmethod
+    def get_config_param(section: str, key: str, fallback=None, as_type=str):
+        """
+        通用方法，从 INI 文件中读取指定的配置项。
+
+        :param section: str, 配置节名称
+        :param key: str, 配置项键名
+        :param fallback: 默认值
+        :param as_type: 返回值类型，支持 str、int、bool
+        :return: 配置值
+        """
+        config, _ = ConfigUtil.get_ini_config()
+        try:
+            if as_type == bool:
+                return config.getboolean(section, key, fallback=fallback)
+            elif as_type == int:
+                return config.getint(section, key, fallback=fallback)
+            else:
+                return config.get(section, key, fallback=fallback)
+        except Exception as e:
+            logger.error(f"读取配置项失败：[{section}] {key}, 错误：{e}")
+            return fallback
+
+    @staticmethod
+    def set_config_param(section: str, key: str, value: str):
+        """
+        通用方法，更新 INI 文件中的指定配置项。
+
+        :param section: str, 配置节名称
+        :param key: str, 配置项键名
+        :param value: str, 配置值
+        """
+        config, ini_path = ConfigUtil.get_ini_config()
+        ConfigUtil.update_ini_line(ini_path, section, key, value)
+        logger.info(f"配置已更新：[{section}] {key} = {value}")
 
     @staticmethod
     def get_ini_sync_webdav_param(param:str):
@@ -40,16 +75,14 @@ class ConfigUtil:
         sync.webdav.remote_dir
         sync.webdav.local_dir
         """
-        config, _ = ConfigUtil.get_ini_config()
-        return config.get("Settings", param, fallback="")
+        return ConfigUtil.get_config_param("Settings", param, fallback="")
 
     @staticmethod
     def get_ini_sync_webdav_auto_checked():
         """
         从 INI 文件读取 WebDAV 自动同步
         """
-        config, _ = ConfigUtil.get_ini_config()
-        return config.getboolean("Settings", "sync.webdav.auto_checked", fallback=False)
+        return ConfigUtil.get_config_param("Settings", "sync.webdav.auto_checked", fallback=False, as_type=bool)
 
     # 从 INI 文件读取 遮罩是否启用的配置
     @staticmethod
@@ -57,61 +90,53 @@ class ConfigUtil:
         """
         从 INI 文件读取 遮罩是否启用的配置
         """
-        config, _ = ConfigUtil.get_ini_config()
-        return config.getboolean("Settings", "mini.mask_checked", fallback=True)
+        return ConfigUtil.get_config_param("Settings", "mini.mask_checked", fallback=True, as_type=bool)
 
     @staticmethod
     def get_ini_mini_checked():
         """
         从 INI 文件读取 遮罩是否启用的配置
         """
-        config, _ = ConfigUtil.get_ini_config()
-        return config.getboolean("Settings", "mini.checked", fallback=False)
+        return ConfigUtil.get_config_param("Settings", "mini.checked", fallback=False, as_type=bool)
 
     @staticmethod
     def get_ini_mini_size():
         """
         从 INI 文件读取 遮罩是否启用的配置
         """
-        config, _ = ConfigUtil.get_ini_config()
-        mini_size =  config.getint("Settings", "mini.size", fallback=FsConstants.APP_MINI_SIZE)
-        return mini_size if ConfigUtil.get_ini_mini_checked() else FsConstants.APP_MINI_SIZE
+        default_size = FsConstants.APP_MINI_SIZE
+        size = ConfigUtil.get_config_param("Settings", "mini.size", fallback=default_size, as_type=int)
+        return size if ConfigUtil.get_ini_mini_checked() else default_size
+
 
     @staticmethod
     def get_ini_mini_image():
         """
         从 INI 文件读取 遮罩是否启用的配置
         """
-        config, _ = ConfigUtil.get_ini_config()
-        mini_image =  config.get("Settings", "mini.image", fallback=CommonUtil.get_mini_ico_full_path())
-        # 如果悬浮球修改未启用，返回默认悬浮球图标
+        default_image = CommonUtil.get_mini_ico_full_path()
+        image = ConfigUtil.get_config_param("Settings", "mini.image", fallback=default_image)
         if ConfigUtil.get_ini_mini_checked():
-            # 如果悬浮球背景图片存在，返回图片路径，否则返回默认悬浮球图标
-            return mini_image if os.path.exists(mini_image) else CommonUtil.get_mini_ico_full_path()
-        else:
-            return CommonUtil.get_mini_ico_full_path()
+            return image if os.path.exists(image) else default_image
+        return default_image
 
     @staticmethod
     def get_ini_tray_menu_checked():
         """
         从 INI 文件读取 遮罩是否启用的配置
         """
-        config, _ = ConfigUtil.get_ini_config()
-        return config.getboolean("Settings", "tray_menu.checked", fallback=False)
+        return ConfigUtil.get_config_param("Settings", "tray_menu.checked", fallback=False, as_type=bool)
 
     @staticmethod
     def get_ini_tray_menu_image():
         """
         从 INI 文件读取 遮罩是否启用的配置
         """
-        config, _ = ConfigUtil.get_ini_config()
-        tray_menu_image =  config.get("Settings", "tray_menu.image", fallback=CommonUtil.get_resource_path(FsConstants.APP_BAR_ICON_FULL_PATH))
-        # 如果托盘图标修改未启用，返回默认托盘图标
+        default_image = CommonUtil.get_resource_path(FsConstants.APP_BAR_ICON_FULL_PATH)
+        image = ConfigUtil.get_config_param("Settings", "tray_menu.image", fallback=default_image)
         if ConfigUtil.get_ini_tray_menu_checked():
-            # 如果托盘图标图片存在，返回图片路径，否则返回默认托盘图标
-            return tray_menu_image if os.path.exists(tray_menu_image) else CommonUtil.get_resource_path(FsConstants.APP_BAR_ICON_FULL_PATH)
-        else:
-            return CommonUtil.get_resource_path(FsConstants.APP_BAR_ICON_FULL_PATH)
+            return image if os.path.exists(image) else default_image
+        return default_image
 
     @staticmethod
     def set_ini_sync_webdav_param(param: str, value: str):
@@ -123,16 +148,12 @@ class ConfigUtil:
         sync.webdav.remote_dir
         sync.webdav.local_dir
         """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", param, value)
+        ConfigUtil.set_config_param("Settings", param, value)
         logger.info(f"WebDAV {param} 已更新为: {value}")
 
     @staticmethod
     def set_ini_sync_webdav_auto_checked(enabled):
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", "sync.webdav.auto_checked", "true" if enabled else "false")
+        ConfigUtil.set_config_param("Settings", "sync.webdav.auto_checked", "true" if enabled else "false")
         logger.info(f"WebDAV状态已更新为: {'启用' if enabled else '禁用'}")
 
 
@@ -143,19 +164,16 @@ class ConfigUtil:
         将 遮罩动画的启用状态写入到 INI 配置文件中，保留注释。
         :param enabled: bool, True 表示启用 遮罩动画，False 表示禁用。
         """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", "mini.mask_checked", "true" if enabled else "false")
+        ConfigUtil.set_config_param("Settings", "mini.mask_checked", "true" if enabled else "false")
         logger.info(f"遮罩状态已更新为: {'启用' if enabled else '禁用'}")
+
     @staticmethod
     def set_ini_mini_checked(enabled):
         """
         将 悬浮球修改状态写入到 INI 配置文件中，保留注释。
         :param enabled: bool, True 表示启用 悬浮球修改，False 表示禁用。
         """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", "mini.checked", "true" if enabled else "false")
+        ConfigUtil.set_config_param("Settings", "mini.checked", "true" if enabled else "false")
         logger.info(f"悬浮球状态已更新为: {'启用' if enabled else '禁用'}")
 
 
@@ -165,9 +183,7 @@ class ConfigUtil:
         将 悬浮球大小写入到 INI 配置文件中，保留注释。
         :param size: int, 悬浮球大小。
         """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", "mini.size", str(size))
+        ConfigUtil.set_config_param("Settings", "mini.size", str(size))
         logger.info(f"悬浮球大小已更新为: {str(size)}")
 
     @staticmethod
@@ -176,10 +192,7 @@ class ConfigUtil:
         将 悬浮球背景写入到 INI 配置文件中，保留注释。
         :param image: str, 悬浮球背景图片。
         """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", "mini.image", image)
-        return config.get("Settings", "mini.image", fallback=CommonUtil.get_mini_ico_full_path())
+        ConfigUtil.set_config_param("Settings", "mini.image", image)
 
     @staticmethod
     def set_ini_tray_menu_checked(enabled):
@@ -187,11 +200,7 @@ class ConfigUtil:
         将 托盘图标修改状态写入到 INI 配置文件中，保留注释。
         :param enabled: bool, True 表示启用 托盘图标修改，False 表示禁用。
         """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", "tray_menu.checked", "true" if enabled else "false")
-        logger.info(f"托盘图标状态已更新为: {'启用' if enabled else '禁用'}")
-
+        ConfigUtil.set_config_param("Settings", "tray_menu.checked", "true" if enabled else "false")
 
     #
     @staticmethod
@@ -200,9 +209,7 @@ class ConfigUtil:
         将 托盘图标写入到 INI 配置文件中，保留注释。
         :param image: str, 托盘图标图片。
         """
-        config, ini_path = ConfigUtil.get_ini_config()
-        # 更新配置值
-        ConfigUtil.update_ini_line(ini_path, "Settings", "tray_menu.image", image)
+        ConfigUtil.set_config_param("Settings", "tray_menu.image", image)
         logger.info(f"托盘图标已更新为: {image}")
 
     @staticmethod

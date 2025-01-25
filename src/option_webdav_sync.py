@@ -136,18 +136,33 @@ class OptionWebDavSync(QWidget):
         if not url or not username or not password:
             MessageUtil.show_warning_message("请填写完整的 WebDAV 配置")
             return
-
         try:
+            # 初始化 WebDAV 客户端
             self.client = Client({
                 "webdav_hostname": url,
                 "webdav_login": username,
                 "webdav_password": password,
             })
-            MessageUtil.show_success_message("连接到 WebDAV 服务器")
+
+            #测试连接，尝试列举根目录
+            if self.client.list("/"):
+                MessageUtil.show_success_message("成功连接到 WebDAV 服务器")
+                # 成功连接后禁用输入框
+                self.webdav_url.setEnabled(False)
+                self.webdav_username.setEnabled(False)
+                self.webdav_password.setEnabled(False)
+            else:
+                raise ConnectionError("无法列举 WebDAV 根目录，可能是权限不足")
+
+        except ConnectionError as ce:
+            logger.error(f"WebDAV 权限不足: {str(ce)}")
+            MessageUtil.show_error_message(f"WebDAV 权限不足")
         except Exception as e:
+            logger.error(f"无法连接到 WebDAV 服务器: {str(e)}")
             MessageUtil.show_error_message("无法连接到 WebDAV 服务器")
 
-    def init_sync_webdav(self):
+    def signal_sync_webdav(self):
+        """连接 WebDAV"""
         url = self.webdav_url.text().strip()
         username = self.webdav_username.text().strip()
         password = self.webdav_password.text().strip()
@@ -156,14 +171,25 @@ class OptionWebDavSync(QWidget):
             MessageUtil.show_warning_message("请填写完整的 WebDAV 配置")
             return
         try:
+            # 初始化 WebDAV 客户端
             self.client = Client({
                 "webdav_hostname": url,
                 "webdav_login": username,
                 "webdav_password": password,
             })
+
+            # 测试连接，尝试列举根目录
+            if not self.client.list("/"):
+                logger.warning("无法列举 WebDAV 根目录，可能是权限不足")
+                raise ConnectionError("无法列举 WebDAV 根目录，可能是权限不足")
+
+            self.start_auto_sync()
+        except ConnectionError as ce:
+            logger.error(f"WebDAV 权限不足: {str(ce)}")
+            MessageUtil.show_error_message(f"WebDAV 权限不足")
         except Exception as e:
+            logger.error(f"无法连接到 WebDAV 服务器: {str(e)}")
             MessageUtil.show_error_message("无法连接到 WebDAV 服务器")
-        self.start_auto_sync()
 
     def sync_files(self):
         """同步文件（支持文件夹，并自动创建文件夹）"""

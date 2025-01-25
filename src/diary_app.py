@@ -34,7 +34,7 @@ class DiaryApp(QWidget):
 
         # 初始化 WebDav 同步类
         self.webdav_sync = OptionWebDavSync()
-        self.init_connect_webdav_signal.connect(self.webdav_sync.init_sync_webdav)
+        self.init_connect_webdav_signal.connect(self.webdav_sync.signal_sync_webdav)
 
         # 当前日记文件
         self.current_file = None
@@ -67,7 +67,7 @@ class DiaryApp(QWidget):
         self.load_diary_tree()
 
         if ConfigUtil.get_ini_sync_webdav_auto_checked():
-            logger.info("WebDAV触发信号")
+            logger.info("---- WebDAV触发信号 ----")
             self.init_connect_webdav_signal.emit()
     # 动态绑定信息用到的方法
     def load_expand_folder(self, item):
