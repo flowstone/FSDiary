@@ -20,6 +20,7 @@ class TrayMenu(QObject):
         self.tray_icon = None
 
         self.config_manager = ConfigManager()
+        self.config_manager.config_updated.connect(self.on_config_updated)
 
     def init_tray_menu(self, main_window):
         logger.info("---- 初始化任务栏图标 ----")
@@ -55,6 +56,9 @@ class TrayMenu(QObject):
     def show_main_signal_emit(self):
         self.show_main_signal.emit()
 
+    def on_config_updated(self, key, value):
+        if key == ConfigManager.APP_TRAY_MENU_IMAGE_KEY:
+            self.tray_icon.setIcon(QIcon(value))
 
     # 重启应用
     @staticmethod

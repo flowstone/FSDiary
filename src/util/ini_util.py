@@ -98,7 +98,6 @@ class IniUtil:
             IniUtil.set_config_param(IniUtil.SETTINGS_KEY, key, "true" if value else "false")
         else:
             IniUtil.set_config_param(IniUtil.SETTINGS_KEY, key, value)
-        logger.info(f"WebDAV {key} 已更新为: {value}")
 
     @staticmethod
     def get_ini_app_param(key: str):
@@ -119,7 +118,6 @@ class IniUtil:
             IniUtil.set_config_param(IniUtil.SETTINGS_KEY, key, str(value))
         else:
             IniUtil.set_config_param(IniUtil.SETTINGS_KEY, key, value)
-        logger.info(f"{key}已更新为: {value}")
 
 
     @staticmethod

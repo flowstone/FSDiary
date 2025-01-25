@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QSystemTrayIcon
 from PySide6.QtGui import QIcon, Qt, QDragEnterEvent, QDropEvent
 
 from src.diary_app import DiaryApp
+from src.util.config_manager import ConfigManager
 from src.widget.app_mini import FloatingBall
 from loguru import logger
 from src.util.common_util import CommonUtil
@@ -21,8 +22,9 @@ from src.widget.tray_menu import TrayMenu
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.menubar = None
         self.floating_ball = FloatingBall(self)
+
+        self.menubar = None
         self.is_floating_ball_visible = False
         self.tray_menu = TrayMenu(self)
         self.init_ui()

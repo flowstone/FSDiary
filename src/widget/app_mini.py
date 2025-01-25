@@ -20,6 +20,12 @@ class FloatingBall(QWidget):
         self.setStyleSheet("background-color: transparent;")
         self.main_window = main_window
         self.config_manager = ConfigManager()
+        self.config_manager.config_updated.connect(self.on_config_updated)
+
+        self.background_image = self.config_manager.get_config(ConfigManager.APP_MINI_IMAGE_KEY)
+        self.mini_mask_checked = self.config_manager.get_config(ConfigManager.APP_MINI_MASK_CHECKED_KEY)
+        self.app_mini_size = self.config_manager.get_config(ConfigManager.APP_MINI_SIZE_KEY)
+
         self.init_ui()
 
 
@@ -27,8 +33,7 @@ class FloatingBall(QWidget):
     def init_ui(self):
         logger.info("---- 悬浮球初始化 ----")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
-        app_mini_size = self.config_manager.get_config(ConfigManager.APP_MINI_SIZE_KEY)
-        self.setGeometry(0, 0, app_mini_size, app_mini_size)  # 设置悬浮球大小
+        self.setGeometry(0, 0, self.app_mini_size, self.app_mini_size)  # 设置悬浮球大小
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)  # 设置窗口背景透明
 
         #self.setWindowOpacity(0.8)  # 设置透明度
@@ -39,15 +44,11 @@ class FloatingBall(QWidget):
         self.dragPosition = None
         self.setMouseTracking(True)
 
-
-
         # 启动呼吸灯效果（透明度周期性变化）
-        #self.breathing_light_window()
+        self.breathing_light_window()
         # 悬浮球的缓慢漂浮（上下浮动）
         self.add_float_animation()
-        if self.config_manager.get_config(ConfigManager.APP_MINI_MASK_CHECKED_KEY):
-            self.add_mask_animation()
-            self.add_mask_breathing_effect()
+
         # 随机跑
         #self.add_random_walk()
 
@@ -157,8 +158,7 @@ class FloatingBall(QWidget):
     def setup_background_image(self):
         logger.info("---- 初始化悬浮球背景图 ----")
         layout = QVBoxLayout()
-        # 这里使用一个示例图片路径，你可以替换为真实路径
-        pixmap = QPixmap(self.config_manager.get_config(ConfigManager.APP_MINI_IMAGE_KEY))
+        pixmap = QPixmap(self.background_image)
         pixmap = pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.background_label = QLabel(self)
         self.background_label.setPixmap(pixmap)
@@ -166,11 +166,13 @@ class FloatingBall(QWidget):
         layout.addWidget(self.background_label)
         self.setLayout(layout)
         # 添加遮罩
-        if self.config_manager.get_config(ConfigManager.APP_MINI_MASK_CHECKED_KEY):
-            self.add_mask()
-
-
-
+        self.add_mask()
+        self.add_mask_animation()
+        self.add_mask_breathing_effect()
+        if not self.mini_mask_checked:
+            self.mask.hide()
+            self.mask_animation.stop()
+            self.breathing_animation.stop()
 
     def move_to_top_right(self):
         logger.info("---- 初始化悬浮球位置 ----")
@@ -222,3 +224,24 @@ class FloatingBall(QWidget):
             self.show_main_window()
 
 
+
+    def on_config_updated(self, key, value):
+        if key == ConfigManager.APP_MINI_MASK_CHECKED_KEY:
+            if value:
+                self.mask.show()
+                self.mask_animation.start()
+                self.breathing_animation.start()
+            else:
+                self.mask.hide()
+                self.mask_animation.stop()
+                self.breathing_animation.stop()
+        elif key == ConfigManager.APP_MINI_IMAGE_KEY:
+            pixmap = QPixmap(value)
+            pixmap = pixmap.scaled(self.app_mini_size,self.app_mini_size, Qt.AspectRatioMode.KeepAspectRatio,
+                                   Qt.TransformationMode.SmoothTransformation)
+            self.background_label.setPixmap(pixmap)
+
+        elif key == ConfigManager.APP_MINI_SIZE_KEY:
+             self.app_mini_size = value
+             self.setGeometry(0, 0, value, value)  # 设置悬浮球大小
+             self.move_to_top_right()

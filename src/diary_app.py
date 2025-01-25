@@ -26,7 +26,7 @@ class DiaryApp(QWidget):
         super().__init__()
         self.setWindowTitle("日记应用")
         self.config_manager = ConfigManager()
-
+        self.config_manager.config_updated.connect(self.on_config_updated)
         # 加载加密密钥
         self.key = self.load_key()
         if not self.key:
@@ -66,10 +66,14 @@ class DiaryApp(QWidget):
         main_layout.addWidget(self.diary_layout)
         self.setLayout(main_layout)
         self.load_diary_tree()
-
-        if self.config_manager.get_config(ConfigManager.WEBDAV_AUTO_CHECKED_KEY):
+        self.webdav_auto_checked = self.config_manager.get_config(ConfigManager.WEBDAV_AUTO_CHECKED_KEY)
+        if self.webdav_auto_checked:
             logger.info("---- WebDAV触发信号 ----")
             self.init_connect_webdav_signal.emit()
+
+    def on_config_updated(self, key, value):
+        if key == ConfigManager.WEBDAV_AUTO_CHECKED_KEY:
+            self.webdav_auto_checked = value
     # 动态绑定信息用到的方法
     def load_expand_folder(self, item):
         self.expand_folder(item)

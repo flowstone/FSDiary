@@ -3,7 +3,24 @@ from PySide6.QtCore import QObject, Signal
 from src.const.fs_constants import FsConstants
 from src.util.common_util import CommonUtil
 from src.util.ini_util import IniUtil  # 引入 ConfigUtil 类
+from loguru import logger
 
+#### 单例装饰器，解决信号槽绑定失效
+def singleton(cls):
+    instances = {}
+
+    def wrapper(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)  # 只在第一次调用时实例化
+        return instances[cls]
+
+    # 保持对原类常量的访问
+    wrapper.__name__ = cls.__name__
+    wrapper.__doc__ = cls.__doc__
+    wrapper.__dict__.update(cls.__dict__)  # 保持类的属性、方法等
+    return wrapper
+
+@singleton
 class ConfigManager(QObject):
     ############# Config 常量 #################
     APP_MINI_MASK_CHECKED_KEY = "mini_mask_checked"
@@ -27,6 +44,7 @@ class ConfigManager(QObject):
 
     def __init__(self):
         super().__init__()
+        logger.info("Config Manager初始化")
 
     @staticmethod
     def load_config():
@@ -57,6 +75,7 @@ class ConfigManager(QObject):
         return config
 
     def save_config(self, key, value):
+        logger.info(f"正在保存配置：{key} = {value}")  # 添加调试输出
 
         if key == ConfigManager.APP_MINI_MASK_CHECKED_KEY:
             IniUtil.set_ini_app_param(IniUtil.APP_MINI_MASK_CHECKED_KEY, value)

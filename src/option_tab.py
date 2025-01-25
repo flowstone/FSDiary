@@ -12,10 +12,11 @@ from src.const.fs_constants import FsConstants
 from src.option_general import OptionGeneral
 from src.option_webdav_sync import OptionWebDavSync
 from src.util.common_util import CommonUtil
+from src.widget.menu_window_widget import MenuWindowWidget
 from src.widget.tabwidget_animation import AnimatedTabWidget
 
 
-class OptionTab(QWidget):
+class OptionTab(MenuWindowWidget):
 
     def __init__(self):
         super().__init__()

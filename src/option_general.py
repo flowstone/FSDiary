@@ -168,7 +168,7 @@ class OptionGeneral(MenuWindowWidget):
         self.slider_value = value
 
     def browse_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "选择文件", "", "所有文件 (*.png)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "选择文件", "", "所有文件 (*.png *.ico)")
         if file_path:
             sender = self.sender()
             if sender.objectName() == "tray_browse_button":
