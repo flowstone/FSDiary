@@ -8,7 +8,6 @@ import os
 from src.util.common_util import CommonUtil
 from loguru import logger
 
-from src.util.config_util import ConfigUtil
 from src.widget.menu_window_widget import MenuWindowWidget
 
 

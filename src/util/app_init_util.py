@@ -5,7 +5,6 @@ from src.util.common_util import CommonUtil
 from PySide6.QtGui import QFontDatabase, QPalette
 from loguru import logger
 
-from src.util.config_util import ConfigUtil
 from src.util.encryption_util import EncryptionUtil
 
 

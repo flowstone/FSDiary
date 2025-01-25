@@ -35,7 +35,6 @@ from loguru import logger
 
 from src.main_window import MainWindow
 from src.util.app_init_util import AppInitUtil
-from src.util.config_util import ConfigUtil
 from src.util.common_util import CommonUtil
 from src.const.fs_constants import FsConstants
 import  os

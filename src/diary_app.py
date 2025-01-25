@@ -10,7 +10,7 @@ from src.context_menu import DiaryContextMenu
 from src.option_webdav_sync import OptionWebDavSync
 from src.ui_components import UiComponents
 from src.util.common_util import CommonUtil
-from src.util.config_util import ConfigUtil
+from src.util.config_manager import ConfigManager
 from src.util.encryption_util import EncryptionUtil
 from src.util.message_util import MessageUtil
 from src.widget.markdown_editor import MarkdownEditor
@@ -25,6 +25,7 @@ class DiaryApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("日记应用")
+        self.config_manager = ConfigManager()
 
         # 加载加密密钥
         self.key = self.load_key()
@@ -66,7 +67,7 @@ class DiaryApp(QWidget):
         self.setLayout(main_layout)
         self.load_diary_tree()
 
-        if ConfigUtil.get_ini_sync_webdav_auto_checked():
+        if self.config_manager.get_config(ConfigManager.WEBDAV_AUTO_CHECKED_KEY):
             logger.info("---- WebDAV触发信号 ----")
             self.init_connect_webdav_signal.emit()
     # 动态绑定信息用到的方法
