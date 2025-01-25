@@ -12,6 +12,7 @@ class IniUtil:
     ##############Settings START################
     SETTINGS_KEY = "Settings"
     APP_MINI_MASK_CHECKED_KEY = "mini.mask_checked"
+    APP_MINI_BREATHING_LIGHT_CHECKED_KEY = "mini.breathing_light_checked"
     APP_MINI_CHECKED_KEY = "mini.checked"
     APP_MINI_SIZE_KEY = "mini.size"
     APP_MINI_IMAGE_KEY = "mini.image"
@@ -101,7 +102,7 @@ class IniUtil:
 
     @staticmethod
     def get_ini_app_param(key: str):
-        if IniUtil.APP_MINI_MASK_CHECKED_KEY == key:
+        if IniUtil.APP_MINI_MASK_CHECKED_KEY == key or IniUtil.APP_MINI_BREATHING_LIGHT_CHECKED_KEY == key:
             return IniUtil.get_config_param(IniUtil.SETTINGS_KEY, key, fallback=True, as_type=bool)
         elif IniUtil.APP_MINI_CHECKED_KEY == key or IniUtil.APP_TRAY_MENU_CHECKED_KEY == key:
             return IniUtil.get_config_param(IniUtil.SETTINGS_KEY, key, fallback=False, as_type=bool)

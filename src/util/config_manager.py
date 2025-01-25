@@ -24,6 +24,7 @@ def singleton(cls):
 class ConfigManager(QObject):
     ############# Config 常量 #################
     APP_MINI_MASK_CHECKED_KEY = "mini_mask_checked"
+    APP_MINI_BREATHING_LIGHT_CHECKED_KEY = "mini_breathing_light_checked"
     APP_MINI_CHECKED_KEY = "mini_checked"
     APP_MINI_SIZE_KEY = "mini_size"
     APP_MINI_IMAGE_KEY = "mini_image"
@@ -59,6 +60,9 @@ class ConfigManager(QObject):
         # 从 INI 文件加载配置
         config = {
             ConfigManager.APP_MINI_MASK_CHECKED_KEY: IniUtil.get_ini_app_param(IniUtil.APP_MINI_MASK_CHECKED_KEY),
+            ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY: IniUtil.get_ini_app_param(
+                IniUtil.APP_MINI_BREATHING_LIGHT_CHECKED_KEY),
+
             ConfigManager.APP_MINI_CHECKED_KEY: IniUtil.get_ini_app_param(IniUtil.APP_MINI_CHECKED_KEY),
             ConfigManager.APP_MINI_SIZE_KEY: mini_size,
             ConfigManager.APP_MINI_IMAGE_KEY: mini_image,
@@ -79,6 +83,8 @@ class ConfigManager(QObject):
 
         if key == ConfigManager.APP_MINI_MASK_CHECKED_KEY:
             IniUtil.set_ini_app_param(IniUtil.APP_MINI_MASK_CHECKED_KEY, value)
+        elif key == ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY:
+            IniUtil.set_ini_app_param(IniUtil.APP_MINI_BREATHING_LIGHT_CHECKED_KEY, value)
         elif key == ConfigManager.APP_MINI_CHECKED_KEY:
             IniUtil.set_ini_sync_webdav_param(IniUtil.APP_MINI_CHECKED_KEY, value)
         elif key == ConfigManager.APP_MINI_SIZE_KEY:

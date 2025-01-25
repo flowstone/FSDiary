@@ -55,9 +55,14 @@ class OptionGeneral(MenuWindowWidget):
         layout = QVBoxLayout()
 
         # 遮罩动画复选框
-        self.mask_checkbox = QCheckBox("遮罩动画")
+        self.mask_checkbox = QCheckBox("阴影动画")
         layout.addWidget(self.mask_checkbox)
         self.mask_checkbox.setChecked(self.config_manager.get_config(ConfigManager.APP_MINI_MASK_CHECKED_KEY))
+
+        # 吸引灯复选框
+        self.breathing_light_checkbox = QCheckBox("吸引灯动画")
+        layout.addWidget(self.breathing_light_checkbox)
+        self.breathing_light_checkbox.setChecked(self.config_manager.get_config(ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY))
 
         # 悬浮球设置
         self.float_ball_checkbox = QCheckBox("设置悬浮球")
@@ -229,6 +234,7 @@ class OptionGeneral(MenuWindowWidget):
         tray_menu_enabled = self.tray_menu_checkbox.isChecked()
         try:
             self.config_manager.set_config(ConfigManager.APP_MINI_MASK_CHECKED_KEY, mask_enabled)
+            self.config_manager.set_config(ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY, self.breathing_light_checkbox.isChecked())
             self.config_manager.set_config(ConfigManager.APP_MINI_CHECKED_KEY, mini_enabled)  # 将 悬浮球修改状态写入到配置文件
             self.config_manager.set_config(ConfigManager.APP_TRAY_MENU_CHECKED_KEY, tray_menu_enabled)  # 将 托盘图标修改的状态写入到配置文件
             if mini_enabled:

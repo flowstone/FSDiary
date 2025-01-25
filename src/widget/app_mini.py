@@ -46,6 +46,8 @@ class FloatingBall(QWidget):
 
         # 启动呼吸灯效果（透明度周期性变化）
         self.breathing_light_window()
+        if not self.config_manager.get_config(ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY):
+            self.timer_light.stop()
         # 悬浮球的缓慢漂浮（上下浮动）
         self.add_float_animation()
 
@@ -59,10 +61,10 @@ class FloatingBall(QWidget):
         self.opacity = 0.2
         # 透明度每次变化的值，控制呼吸的速度和节奏
         self.direction = 0.02
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_opacity)
+        self.timer_light = QTimer(self)
+        self.timer_light.timeout.connect(self.update_opacity)
         # 设置定时器间隔为50毫秒，可根据需要调整呼吸节奏快慢
-        self.timer.start(50)
+        self.timer_light.start(50)
 
     # 更新透明度
     def update_opacity(self):
@@ -103,9 +105,9 @@ class FloatingBall(QWidget):
 
     # -------- 随机出现位置 【START】
     def add_random_walk(self):
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.random_move)
-        self.timer.start(1000)  # 每秒移动一次
+        self.timer_walk = QTimer(self)
+        self.timer_walk.timeout.connect(self.random_move)
+        self.timer_walk.start(1000)  # 每秒移动一次
 
     def random_move(self):
         screen_geo = QGuiApplication.primaryScreen().geometry()
@@ -245,3 +247,9 @@ class FloatingBall(QWidget):
              self.app_mini_size = value
              self.setGeometry(0, 0, value, value)  # 设置悬浮球大小
              self.move_to_top_right()
+        elif key == ConfigManager.APP_MINI_BREATHING_LIGHT_CHECKED_KEY:
+            if value:
+                self.timer_light.start(50)
+            else:
+                self.timer_light.stop()
+
