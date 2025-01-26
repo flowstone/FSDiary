@@ -105,11 +105,13 @@ class DiaryContextMenu(QMenu):
                 # 更新树形结构
                 selected_item.setText(0, new_name)  # 更新显示的文件夹名称
                 selected_item.setData(0, Qt.ItemDataRole.UserRole, new_folder_path)  # 更新文件夹路径
+                self.expand_folder_signal.emit(selected_item)
 
                 logger.info(f"文件夹 '{folder_path}' 已重命名为 '{new_folder_path}'")
             except Exception as e:
                 logger.error(f"重命名文件夹失败：{str(e)}")
                 MessageUtil.show_error_message(f"重命名文件夹失败")
+
 
     def delete_diary(self):
         """删除日记"""
@@ -145,6 +147,7 @@ class DiaryContextMenu(QMenu):
                     parent_item.removeChild(selected_item)
                 else:
                     self.diary_tree.takeTopLevelItem(self.diary_tree.indexOfTopLevelItem(selected_item))
+                self.expand_folder_signal.emit(selected_item)
 
                 # 如果删除的是当前日记，清空编辑框
                 if self.current_file == diary_name:
@@ -177,7 +180,10 @@ class DiaryContextMenu(QMenu):
             return  # 用户取消操作或输入为空
 
         # 检查是否重名
-        new_file_path = f"{self.diary_dir}/{new_name}.enc"
+        # 修正路径构造：获取原文件的父目录
+        parent_dir = os.path.dirname(self.file_path)  # 新增关键行
+        base_name = os.path.splitext(new_name)[0]
+        new_file_path = os.path.join(parent_dir, f"{base_name}.enc")
         if os.path.exists(new_file_path):
             MessageUtil.show_warning_message("文件名已存在，请使用其他名称。")
             return
@@ -187,16 +193,24 @@ class DiaryContextMenu(QMenu):
             os.rename(self.file_path, new_file_path)
 
             # 更新列表项显示名称
-            current_item.setText(new_name)
+            current_item.setText(0, new_name)
 
             # 如果重命名的是当前正在编辑的文件，更新 self.current_file
             if self.current_file == old_name:
                 self.current_file = new_name
+                # 同步更新文件路径（关键）
+                self.file_path = new_file_path  # 假设上下文菜单的 parent 是 DiaryApp
 
+            # 新增：立即更新父目录的显示
+            parent_item = current_item.parent()
+            if parent_item:
+                self.expand_folder_signal.emit(parent_item)
             MessageUtil.show_success_message(f"日记已重命名")
         except Exception as e:
             logger.error(f"重命名失败：{str(e)}")
             MessageUtil.show_error_message(f"重命名失败")
+
+
 
     def export_to_pdf(self):
         """将Markdown内容导出为PDF"""

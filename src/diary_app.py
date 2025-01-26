@@ -1,3 +1,5 @@
+import sys
+
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit, QListWidget, \
     QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView, QTreeWidgetItem
@@ -35,7 +37,7 @@ class DiaryApp(QWidget):
 
         # 初始化 WebDav 同步类
         self.webdav_sync = OptionWebDavSync()
-        self.init_connect_webdav_signal.connect(self.webdav_sync.signal_sync_webdav)
+        self.init_connect_webdav_signal.connect(self._handle_webdav_sync)
 
         # 当前日记文件
         self.current_file = None
@@ -153,9 +155,16 @@ class DiaryApp(QWidget):
     @staticmethod
     def load_key():
         key_file = CommonUtil.get_diary_key_path()
-        if  os.path.exists(key_file):
-            with open(key_file, "rb") as file:
-                return file.read()
+        try:
+            with open(key_file, "rb") as f:
+                return f.read()
+        except FileNotFoundError:
+            logger.critical("密钥文件不存在")
+            MessageUtil.show_error_message("密钥文件丢失，无法启动！")
+            sys.exit(1)
+        except Exception as e:
+            logger.critical(f"读取密钥失败: {str(e)}")
+            sys.exit(1)
 
 
 
@@ -163,17 +172,15 @@ class DiaryApp(QWidget):
         """加载选中的日记"""
 
         # 获取选中的日记文件路径
-        selected_item = self.diary_tree.currentItem()
-        self.current_file = selected_item.text(0)
+        # 直接从传入的item获取最新路径
+        file_path = item.data(0, Qt.ItemDataRole.UserRole)
+        self.current_file = item.text(0)
         # 检查文件是否存在
-        if not os.path.exists(self.file_path):
-            logger.info(f"日记文件不存在：{self.file_path}")
+        if not os.path.exists(file_path):
+            logger.info(f"日记文件不存在：{file_path}")
             MessageUtil.show_warning_message(f"日记文件不存在")
-            parent_item = item.parent()
-            if parent_item:
-                parent_item.removeChild(item)
-            else:
-                self.diary_tree.takeTopLevelItem(self.diary_tree.indexOfTopLevelItem(item))
+
+            self._remove_tree_item(item)
             self.current_file = None
             return
 
@@ -189,14 +196,13 @@ class DiaryApp(QWidget):
                 encrypted_data = file.read()
                 content = EncryptionUtil.decrypt(encrypted_data, self.key).decode()
                 self.diary_content.set_content(content)
+
+                # 更新当前文件路径（关键修复）
+                self.file_path = file_path  # 同步更新实例变量
         except Exception as e:
             logger.error(f"无法加载日记：{str(e)}")
             MessageUtil.show_error_message(f"无法加载日记")
-            parent_item = item.parent()
-            if parent_item:
-                parent_item.removeChild(item)
-            else:
-                self.diary_tree.takeTopLevelItem(self.diary_tree.indexOfTopLevelItem(item))
+            self._remove_tree_item(item)
             self.current_file = None
 
     def new_diary(self):
@@ -208,15 +214,16 @@ class DiaryApp(QWidget):
 
         self.current_file = file_name.strip()
         selected_item = self.diary_tree.currentItem()
+        select_file_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
         if not selected_item:
             file_path = f"{DIARY_DIR}/{self.current_file}.enc"
         # 获取选中项的路径
         else:
             select_file_path = selected_item.data(0, Qt.ItemDataRole.UserRole)
-            if os.path.isdir(select_file_path):
-                file_path = f"{select_file_path}/{self.current_file}.enc"
-            else:
-                file_path = f"{os.path.dirname(select_file_path)}/{self.current_file}.enc"
+            # 获取父目录路径
+            parent_dir = select_file_path if os.path.isdir(select_file_path) else os.path.dirname(select_file_path)
+            # 使用 os.path.join 安全拼接路径
+            file_path = os.path.join(parent_dir, f"{self.current_file}.enc")
 
         logger.info(f"当前创建文件的全路径:{file_path}")
 
@@ -236,8 +243,9 @@ class DiaryApp(QWidget):
             MessageUtil.show_error_message(f"无法创建新日记文件")
             return
 
-        # 重新加载列表（新建的文件会自动排在第一位）
-        self.load_diary_tree()
+        # 局部刷新父节点
+        parent_item = selected_item if os.path.isdir(select_file_path) else selected_item.parent()
+        self.expand_folder(parent_item)  # 重新展开父目录以加载新文件
 
         # 在树形控件中选中新建的日记
         item = self.find_diary_item(file_path)
@@ -264,6 +272,19 @@ class DiaryApp(QWidget):
         # 调用父类关闭事件
         super().closeEvent(event)
 
+    def _remove_tree_item(self, item):
+        """安全移除树节点"""
+        if parent := item.parent():
+            parent.removeChild(item)
+        else:
+            self.diary_tree.takeTopLevelItem(self.diary_tree.indexOfTopLevelItem(item))
+
+    def _handle_webdav_sync(self):
+        try:
+            self.webdav_sync.signal_sync_webdav()
+        except Exception as e:
+            logger.error(f"WebDAV 同步失败: {str(e)}")
+            MessageUtil.show_error_message("云同步失败，请检查网络和配置")
 if __name__ == "__main__":
     app = QApplication([])
     window = DiaryApp()
