@@ -8,7 +8,7 @@ class FsConstants:
     APP_WINDOW_WIDTH = 300
     APP_WINDOW_HEIGHT = 300
     APP_WINDOW_TITLE = "FSDiary"
-    VERSION = "0.1.0"
+    VERSION = "0.1.1"
     COPYRIGHT_INFO = f"© 2025 {APP_WINDOW_TITLE}"
     # 悬浮球相关常量
     APP_MINI_SIZE = 80
