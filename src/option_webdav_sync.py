@@ -4,15 +4,15 @@ from PySide6.QtWidgets import (
     QLabel, QTextEdit, QFileDialog, QListWidget, QWidget, QMessageBox, QGroupBox, QCheckBox
 )
 from PySide6.QtCore import QTimer, Qt
+from fs_base.config_manager import ConfigManager
+from fs_base.widget import TransparentTextBox
 from webdav3.client import Client
 import os
 from loguru import logger
 
+from src.const.fs_constants import FsConstants
 from src.util.common_util import CommonUtil
-from src.util.config_manager import ConfigManager
-from src.util.ini_util import IniUtil
 from src.util.message_util import MessageUtil
-from src.widget.transparent_textbox_widget import TransparentTextBox
 
 
 class OptionWebDavSync(QWidget):
@@ -29,21 +29,21 @@ class OptionWebDavSync(QWidget):
         self.webdav_password = QLineEdit(self)
         self.local_dir = QLineEdit(self)
         self.remote_dir = QLineEdit(self)
-        self.auto_sync_checkbox.setChecked(self.config_manager.get_config(ConfigManager.WEBDAV_AUTO_CHECKED_KEY))
-        self.webdav_url.setText(self.config_manager.get_config(ConfigManager.WEBDAV_ADDRESS_KEY))
-        self.webdav_username.setText(self.config_manager.get_config(ConfigManager.WEBDAV_USERNAME_KEY))
-        self.webdav_password.setText(self.config_manager.get_config(ConfigManager.WEBDAV_PASSWORD_KEY))
-        local_dir = self.config_manager.get_config(ConfigManager.WEBDAV_LOCAL_DIR_KEY)
+        self.auto_sync_checkbox.setChecked(self.config_manager.get_config(FsConstants.WEBDAV_AUTO_CHECKED_KEY))
+        self.webdav_url.setText(self.config_manager.get_config(FsConstants.WEBDAV_ADDRESS_KEY))
+        self.webdav_username.setText(self.config_manager.get_config(FsConstants.WEBDAV_USERNAME_KEY))
+        self.webdav_password.setText(self.config_manager.get_config(FsConstants.WEBDAV_PASSWORD_KEY))
+        local_dir = self.config_manager.get_config(FsConstants.WEBDAV_LOCAL_DIR_KEY)
         self.local_dir.setText(local_dir if local_dir else CommonUtil.get_diary_enc_path())
-        remote_dir = self.config_manager.get_config(ConfigManager.WEBDAV_REMOTE_DIR_KEY)
+        remote_dir = self.config_manager.get_config(FsConstants.WEBDAV_REMOTE_DIR_KEY)
         self.remote_dir.setText(remote_dir if remote_dir else "/")
 
         self.auto_sync_checkbox.stateChanged.connect(self.on_checkbox_state_changed)
-        self.webdav_url.textChanged.connect(lambda text: self.config_manager.set_config(ConfigManager.WEBDAV_ADDRESS_KEY, text))
-        self.webdav_username.textChanged.connect(lambda text: self.config_manager.set_config(ConfigManager.WEBDAV_USERNAME_KEY, text))
-        self.webdav_password.textChanged.connect(lambda text: self.config_manager.set_config(ConfigManager.WEBDAV_PASSWORD_KEY, text))
-        self.local_dir.textChanged.connect(lambda text: self.config_manager.set_config(ConfigManager.WEBDAV_LOCAL_DIR_KEY, text))
-        self.remote_dir.textChanged.connect(lambda text: self.config_manager.set_config(ConfigManager.WEBDAV_REMOTE_DIR_KEY, text))
+        self.webdav_url.textChanged.connect(lambda text: self.config_manager.set_config(FsConstants.WEBDAV_ADDRESS_KEY, text))
+        self.webdav_username.textChanged.connect(lambda text: self.config_manager.set_config(FsConstants.WEBDAV_USERNAME_KEY, text))
+        self.webdav_password.textChanged.connect(lambda text: self.config_manager.set_config(FsConstants.WEBDAV_PASSWORD_KEY, text))
+        self.local_dir.textChanged.connect(lambda text: self.config_manager.set_config(FsConstants.WEBDAV_LOCAL_DIR_KEY, text))
+        self.remote_dir.textChanged.connect(lambda text: self.config_manager.set_config(FsConstants.WEBDAV_REMOTE_DIR_KEY, text))
 
         # 初始化布局
         self.init_ui()
@@ -114,11 +114,11 @@ class OptionWebDavSync(QWidget):
                 return
 
             self.start_auto_sync()
-            self.config_manager.set_config(ConfigManager.WEBDAV_AUTO_CHECKED_KEY,True)
+            self.config_manager.set_config(FsConstants.WEBDAV_AUTO_CHECKED_KEY,True)
             logger.info("自动同步已开启")
         elif state == 0:  # 0 表示未选中状态
             self.stop_auto_sync()
-            self.config_manager.set_config(ConfigManager.WEBDAV_AUTO_CHECKED_KEY,False)
+            self.config_manager.set_config(FsConstants.WEBDAV_AUTO_CHECKED_KEY,False)
             logger.info("自动同步已关闭")
 
     def select_local_directory(self):

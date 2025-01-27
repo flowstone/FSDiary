@@ -3,12 +3,13 @@ import platform
 import tempfile
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenuBar, QMenu, QMainWindow, QTextEdit, QVBoxLayout, QWidget, QSystemTrayIcon, QMenu
+from fs_base.widget import MenuWindow
+
 from src.const.fs_constants import FsConstants
 import os
 from src.util.common_util import CommonUtil
 from loguru import logger
 
-from src.widget.menu_window_widget import MenuWindowWidget
 
 
 class LogStream:
@@ -35,7 +36,7 @@ class LogStream:
         pass
 
 
-class LogWindow(MenuWindowWidget):
+class LogWindow(MenuWindow):
     """日志窗口类"""
 
     def __init__(self):

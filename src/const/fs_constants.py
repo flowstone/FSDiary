@@ -1,4 +1,7 @@
-class FsConstants:
+from fs_base.const.app_constants import AppConstants
+
+
+class FsConstants(AppConstants):
     """
     ---------------------
     宽度为0 高度为0,则表示窗口【宽高】由组件们决定
@@ -19,17 +22,13 @@ class FsConstants:
     TOOLBAR_README_TITLE = "说明"
     TOOLBAR_AUTHOR_TITLE = "作者"
 
-    WINDOW_TITLE_IMAGE_TOOL = "图片工具"
 
 
     # 共用的常量，应用图标
     APP_ICON_FULL_PATH = "resources/images/app.ico"
     APP_MINI_ICON_FULL_PATH = "resources/images/app_mini.ico"
     APP_BAR_ICON_FULL_PATH = "resources/images/app_bar.ico"
-    UPLOAD_IMAGE_FULL_PATH = "resources/images/upload.svg"
-    AUTHOR_MAIL = "xueyao.me@gmail.com"
-    AUTHOR_BLOG = "https://blog.xueyao.tech"
-    AUTHOR_GITHUB = "https://github.com/flowstone"
+
     PROJECT_ADDRESS = "https://github.com/flowstone/FSDiary"
     BASE_QSS_PATH = "resources/qss/base.qss"
     LICENSE_FILE_PATH = "resources/txt/LICENSE"
@@ -68,8 +67,8 @@ class FsConstants:
 
 
     # 保存文件路径
-    SAVE_FILE_PATH_WIN = "C:\\FSDiary\\"
-    SAVE_FILE_PATH_MAC = "~/FSDiary/"
+    AppConstants.SAVE_FILE_PATH_WIN = "C:\\FSDiary\\"
+    AppConstants.SAVE_FILE_PATH_MAC = "~/FSDiary/"
     EXTERNAL_APP_INI_FILE = "app.ini"
 
     APP_INI_FILE = "app.ini"
@@ -84,3 +83,36 @@ class FsConstants:
     PREFERENCES_WINDOW_TITLE = "首选项"
     PREFERENCES_WINDOW_TITLE_ABOUT = "关于"
     PREFERENCES_WINDOW_TITLE_GENERAL = "常规"
+
+
+
+ # INI 文件配置节名称
+    SETTINGS_SECTION = "Settings"
+    # 配置键名
+    WEBDAV_AUTO_CHECKED_KEY = "webdav.auto.checked"
+    WEBDAV_ADDRESS_KEY = "webdav.address"
+    WEBDAV_USERNAME_KEY = "webdav.username"
+    WEBDAV_PASSWORD_KEY = "webdav.password"
+    WEBDAV_LOCAL_DIR_KEY = "webdav.local.dir"
+    WEBDAV_REMOTE_DIR_KEY = "webdav.remote.dir"
+    # 默认值
+    NEW_CONFIG = {
+        WEBDAV_AUTO_CHECKED_KEY: False,
+        WEBDAV_ADDRESS_KEY: "",
+        WEBDAV_USERNAME_KEY: "",
+        WEBDAV_PASSWORD_KEY: "",
+        WEBDAV_LOCAL_DIR_KEY: "",
+        WEBDAV_REMOTE_DIR_KEY: "",
+    }
+    AppConstants.DEFAULT_CONFIG = {**AppConstants.DEFAULT_CONFIG, **NEW_CONFIG}
+    # 类型映射
+    NEW_CONFIG_TYPES = {
+        WEBDAV_AUTO_CHECKED_KEY: bool,
+        WEBDAV_ADDRESS_KEY: str,
+        WEBDAV_USERNAME_KEY: str,
+        WEBDAV_PASSWORD_KEY: str,
+        WEBDAV_LOCAL_DIR_KEY: str,
+        WEBDAV_REMOTE_DIR_KEY: str,
+    }
+    AppConstants.CONFIG_TYPES = {**AppConstants.CONFIG_TYPES, **NEW_CONFIG_TYPES}
+    ################### INI设置 #####################

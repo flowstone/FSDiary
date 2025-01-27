@@ -4,13 +4,13 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
+from fs_base.widget import MenuWindow
 
 from src.const.fs_constants import FsConstants
 from src.util.common_util import CommonUtil
-from src.widget.menu_window_widget import MenuWindowWidget
 
 
-class AboutWindow(MenuWindowWidget):
+class AboutWindow(MenuWindow):
     def __init__(self):
         super().__init__()
         app_name = FsConstants.APP_WINDOW_TITLE

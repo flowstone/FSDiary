@@ -1,32 +1,26 @@
-import base64
-import datetime
-import sys
-import uuid
 
-import requests
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QSystemTrayIcon, QMenu, QMainWindow, QLabel, QTextEdit, \
     QFileDialog
 
 from PySide6.QtGui import QIcon, Qt, QDragEnterEvent, QDropEvent
+from fs_base.app_mini import AppMini
+from fs_base.app_tray_menu import AppTrayMenu
 
 from src.diary_app import DiaryApp
-from src.util.config_manager import ConfigManager
-from src.widget.app_mini import FloatingBall
 from loguru import logger
 from src.util.common_util import CommonUtil
 from src.const.fs_constants import FsConstants
 from src.util.menu_bar import MenuBar
-from src.widget.tray_menu import TrayMenu
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.floating_ball = FloatingBall(self)
+        self.floating_ball = AppMini(self)
 
         self.menubar = None
         self.is_floating_ball_visible = False
-        self.tray_menu = TrayMenu(self)
+        self.tray_menu = AppTrayMenu(self)
         self.init_ui()
 
     def init_ui(self):

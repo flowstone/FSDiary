@@ -5,6 +5,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayou
     QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView, QTreeWidgetItem
 from PySide6.QtCore import Qt, QTimer, QObject, Signal
 import os
+
+from fs_base.config_manager import ConfigManager
 from loguru import logger
 
 from src.const.fs_constants import FsConstants
@@ -12,7 +14,6 @@ from src.context_menu import DiaryContextMenu
 from src.option_webdav_sync import OptionWebDavSync
 from src.ui_components import UiComponents
 from src.util.common_util import CommonUtil
-from src.util.config_manager import ConfigManager
 from src.util.encryption_util import EncryptionUtil
 from src.util.message_util import MessageUtil
 from src.widget.markdown_editor import MarkdownEditor
@@ -68,13 +69,13 @@ class DiaryApp(QWidget):
         main_layout.addWidget(self.diary_layout)
         self.setLayout(main_layout)
         self.load_diary_tree()
-        self.webdav_auto_checked = self.config_manager.get_config(ConfigManager.WEBDAV_AUTO_CHECKED_KEY)
+        self.webdav_auto_checked = self.config_manager.get_config(FsConstants.WEBDAV_AUTO_CHECKED_KEY)
         if self.webdav_auto_checked:
             logger.info("---- WebDAV触发信号 ----")
             self.init_connect_webdav_signal.emit()
 
     def on_config_updated(self, key, value):
-        if key == ConfigManager.WEBDAV_AUTO_CHECKED_KEY:
+        if key == FsConstants.WEBDAV_AUTO_CHECKED_KEY:
             self.webdav_auto_checked = value
     # 动态绑定信息用到的方法
     def load_expand_folder(self, item):
