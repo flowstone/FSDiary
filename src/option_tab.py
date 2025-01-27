@@ -5,6 +5,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTabWidget
 )
+from fs_base.widget import MenuWindow, TabAnimation
 from loguru import logger
 
 
@@ -12,11 +13,10 @@ from src.const.fs_constants import FsConstants
 from src.option_general import OptionGeneral
 from src.option_webdav_sync import OptionWebDavSync
 from src.util.common_util import CommonUtil
-from src.widget.menu_window_widget import MenuWindowWidget
-from src.widget.tabwidget_animation import AnimatedTabWidget
 
 
-class OptionTab(MenuWindowWidget):
+
+class OptionTab(MenuWindow):
 
     def __init__(self):
         super().__init__()
@@ -33,7 +33,7 @@ class OptionTab(MenuWindowWidget):
         # 创建主布局
         layout = QVBoxLayout(self)
         # 创建 TabWidget
-        self.tab_widget = AnimatedTabWidget()
+        self.tab_widget = TabAnimation()
         # 添加标签页
         self.add_tabs()
         # 将 TabWidget 添加到布局

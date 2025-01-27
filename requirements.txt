@@ -14,3 +14,4 @@ cryptography==44.0.0
 markdown-it-py==3.0.0
 weasyprint==63.1
 webdavclient3==3.14.6
+fs-base==0.1.0
