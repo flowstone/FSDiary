@@ -8,7 +8,6 @@ import os
 from src.log_window import LogWindow
 from src.option_general import OptionGeneral
 from src.option_tab import OptionTab
-from src.util.common_util import CommonUtil
 from loguru import logger
 
 

@@ -5,6 +5,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayou
     QMessageBox, QInputDialog, QWidget, QMenu, QSplitter, QFileDialog, QAbstractItemView, QTreeWidgetItem
 from PySide6.QtCore import Qt, QTimer, QObject, Signal
 import os
+
+from fs_base import ConfigManager
 from loguru import logger
 
 from src.const.fs_constants import FsConstants
@@ -12,9 +14,8 @@ from src.context_menu import DiaryContextMenu
 from src.option_webdav_sync import OptionWebDavSync
 from src.ui_components import UiComponents
 from src.util.common_util import CommonUtil
-from src.util.config_manager import ConfigManager
 from src.util.encryption_util import EncryptionUtil
-from src.util.message_util import MessageUtil
+from fs_base.message_util import MessageUtil
 from src.widget.markdown_editor import MarkdownEditor
 from weasyprint import HTML, CSS
 from weasyprint.text.fonts import FontConfiguration

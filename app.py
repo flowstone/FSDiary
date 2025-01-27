@@ -31,10 +31,10 @@ import multiprocessing
 
 from PySide6.QtGui import QFont, QPalette, Qt
 from PySide6.QtWidgets import QApplication, QStyleFactory
+from fs_base import AppLoad
 from loguru import logger
 
 from src.main_window import MainWindow
-from src.util.app_init_util import AppInitUtil
 from src.util.common_util import CommonUtil
 from src.const.fs_constants import FsConstants
 import  os
@@ -49,11 +49,10 @@ def main():
 
 
     # 初始化配置文件
-    AppInitUtil.write_init_file()
-
+    AppLoad.write_init_file()
 
     # 加载样式表文件
-    AppInitUtil.load_external_stylesheet(app)
+    AppLoad.load_external_stylesheet(app)
 
 
     # Qt界面风格
@@ -63,7 +62,7 @@ def main():
     app.setStyle(QStyleFactory.create("Fusion"))
 
     # 加载外部字体
-    font_family = AppInitUtil.load_external_font()
+    font_family = AppLoad.load_external_font()
     if font_family:
         app.setFont(QFont(font_family))
 

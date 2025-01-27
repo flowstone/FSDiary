@@ -4,10 +4,10 @@ import sys
 from PySide6.QtCore import Signal, QObject
 from PySide6.QtWidgets import QSystemTrayIcon, QMenu, QApplication
 from PySide6.QtGui import QIcon, QAction
+from fs_base import ConfigManager
 from loguru import logger
-from src.util.common_util import CommonUtil
+
 from src.const.fs_constants import FsConstants
-from src.util.config_manager import ConfigManager
 
 
 class TrayMenu(QObject):
@@ -22,7 +22,7 @@ class TrayMenu(QObject):
         self.config_manager = ConfigManager()
         self.config_manager.config_updated.connect(self.on_config_updated)
 
-        self.tray_menu_image = self.config_manager.get_config(ConfigManager.APP_TRAY_MENU_IMAGE_KEY)
+        self.tray_menu_image = self.config_manager.get_config(FsConstants.APP_TRAY_MENU_IMAGE_KEY)
 
     def init_tray_menu(self, main_window):
         logger.info("---- 初始化任务栏图标 ----")

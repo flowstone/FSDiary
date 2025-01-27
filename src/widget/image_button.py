@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QPushButton
 from PySide6.QtGui import QPixmap, QIcon
 from src.util.common_util import CommonUtil
 
+
 # 图片按钮
 class ImageButton(QPushButton):
     def __init__(self, normal_image_path, parent=None):

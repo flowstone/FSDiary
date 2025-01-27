@@ -8,9 +8,9 @@ from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QWidget, QSizePolicy,
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtCore import Signal, QUrl
 from PySide6.QtWidgets import QInputDialog
+from src.util.common_util import CommonUtil
 
 from src.const.fs_constants import FsConstants
-from src.util.common_util import CommonUtil
 from markdown_it import MarkdownIt
 from datetime import datetime  # 用于插入时间
 from loguru import  logger
