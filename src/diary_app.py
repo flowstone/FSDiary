@@ -15,7 +15,7 @@ from src.option_webdav_sync import OptionWebDavSync
 from src.ui_components import UiComponents
 from src.util.common_util import CommonUtil
 from src.util.encryption_util import EncryptionUtil
-from src.util.message_util import MessageUtil
+from fs_base.message_util import MessageUtil
 from src.widget.markdown_editor import MarkdownEditor
 from weasyprint import HTML, CSS
 from weasyprint.text.fonts import FontConfiguration

@@ -13,7 +13,7 @@ from fs_base.widget import MenuWindow, TransparentTextBox
 
 from src.const.fs_constants import FsConstants
 from src.util.common_util import CommonUtil
-from src.util.message_util import MessageUtil
+from fs_base.message_util import MessageUtil
 
 
 class OptionGeneral(MenuWindow):
