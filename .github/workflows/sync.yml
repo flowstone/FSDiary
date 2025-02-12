@@ -1,0 +1,53 @@
+name: Sync Multi - Branches to Multiple Platforms via SSH
+
+on:
+  push:
+    branches:
+      - '*'  # 监听所有分支的推送事件
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 进行完整克隆
+          
+      - name: Configure Git user
+        run: |
+          git config --global user.name '流体石头'
+          git config --global user.email 'xueyao.me@gmail.com'
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add remote repositories
+        run: |
+          git remote add gitee git@gitee.com:flowstone/FSDiary.git
+          git remote add gitcode git@gitcode.com:u010868168/FSDiary.git
+          git remote add bitbucket  git@bitbucket.org:flowstone/FSDiary.git
+          git remote add gitlab  git@gitlab.com:flowstone/FSDiary.git
+
+      - name: Add host keys to known_hosts
+        run: |
+          ssh-keyscan -H gitee.com >> ~/.ssh/known_hosts
+          ssh-keyscan -H gitcode.com >> ~/.ssh/known_hosts
+          ssh-keyscan -H bitbucket.org >> ~/.ssh/known_hosts
+          ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts
+
+          
+      - name: Get current branch
+        id: get_branch
+        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+
+      - name: Push to targets
+        run: |
+          git push --force gitee ${{ steps.get_branch.outputs.branch }}
+          git push --force gitcode ${{ steps.get_branch.outputs.branch }}
+          git push --force bitbucket ${{ steps.get_branch.outputs.branch }}
+          git push --force gitlab ${{ steps.get_branch.outputs.branch }}
+
